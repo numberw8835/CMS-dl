@@ -1,0 +1,22 @@
+[
+    {
+        "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=1577&sid=67",
+        "name": "ML"
+    },
+    {
+        "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn?id=572&sid=67",
+        "name": "AI"
+    },
+    {
+        "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn?id=573&sid=67",
+        "name": "ACL"
+    },
+    {
+        "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn?id=2721&sid=67",
+        "name": "NN"
+    },
+    {
+        "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn?id=571&sid=67",
+        "name": "CV"
+    }
+]
