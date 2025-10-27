@@ -6,7 +6,7 @@ from cms_modules import download_course
 def main():
     parser = argparse.ArgumentParser(description="Download course materials from GUC CMS")
     parser.add_argument("-c", "--course", help="URL of the course page to download materials from")
-    parser.add_argument("--update", action="store_true", help="Updates the courses")
+    parser.add_argument("--sync", action="store_true", help="Syncs the courses in the courses.json file")
     parser.add_argument("-u", "--username", help="Your GUC username")
     parser.add_argument("-p", "--password", help="Your GUC password")
     parser.add_argument("-d", "--delay", type=int, default=1, help="Delay between downloads (default: 1s)")
