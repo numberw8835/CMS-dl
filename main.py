@@ -44,9 +44,9 @@ def main():
             download_course(session, args.course, delay=args.delay)
         elif args.sync:
             courses = load_course_definitions()
-            print(f"Updating {len(courses)} courses...")
+            print(f"Syncing {len(courses)} courses...")
             for course in courses:
-                print(f"Updating {course['name']}...")
+                print(f"Syncing {course['name']}...")
                 download_course(session, course["url"], course["name"], delay=args.delay)
         elif args.get_courses:
             courses = get_course_list(session)
