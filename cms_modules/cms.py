@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 BASE_URL = "https://cms.guc.edu.eg"
+COURSES_URL = BASE_URL + "/apps/student/ViewAllCourseStn"
 
 def get_extension(file_url):
     """Extracts the file extension from a URL."""
@@ -121,3 +122,70 @@ def download_course(session, course_url, course_name = "", delay = 1):
     # Go back to parent dir, if name provided
     if course_name:
         os.chdir("..")
+
+def get_course_list(session):
+    """Extracts all course names and their links from the All Courses page."""
+    response = session.get(COURSES_URL)
+    response.raise_for_status()
+    
+    soup = BeautifulSoup(response.text, "html.parser")
+    
+    # Find all semester tables
+    tables = soup.find_all(
+        "table",
+        class_="table table-hover table-striped table-bordered"
+    )
+    
+    courses = []
+    
+    # Process each table (semester)
+    for table in tables:
+        # Iterate through course rows (skip header row)
+        for row in table.find_all("tr")[1:]:
+            cols = row.find_all("td")
+            if len(cols) < 5:
+                continue
+                
+            try:
+                # Extract course ID and season ID
+                course_id = cols[3].get_text(strip=True)
+                season_id = cols[4].get_text(strip=True)
+                
+                # Construct course URL
+                course_url = f"{BASE_URL}/apps/student/CourseViewStn.aspx?id={course_id}&sid={season_id}"
+                
+                # Extract course name - more robust approach
+                course_name = ""
+                
+                # Look for the first non-empty text in the row
+                for col in cols:
+                    if col.find('a'):
+                        course_name = col.find('a').get_text(strip=True)
+                        break
+                    elif col.find('span'):
+                        course_name = col.find('span').get_text(strip=True)
+                        break
+                    elif col.get_text(strip=True) and len(col.get_text(strip=True)) > 2:
+                        # If it's a reasonable length text, use it
+                        course_name = col.get_text(strip=True)
+                        break
+                
+                # If we still don't have a name, try to get it from the first column
+                if not course_name:
+                    first_col = cols[0]
+                    if first_col.find('a'):
+                        course_name = first_col.find('a').get_text(strip=True)
+                    else:
+                        course_name = first_col.get_text(strip=True)
+                
+                # Add to courses list
+                courses.append({
+                    "url": course_url,
+                    "name": course_name
+                })
+                
+            except Exception as e:
+                print(f"Error processing row: {e}")
+                continue
+    
+    return courses
