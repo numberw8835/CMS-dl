@@ -123,6 +123,26 @@ def download_course(session, course_url, course_name = "", delay = 1):
     if course_name:
         os.chdir("..")
 
+# Clean up filenames    
+def sanitize_filename(name: str) -> str:    
+    cleaned = re.sub(r'[\\/:\*\?"<>\|]+', '', name)    
+    return re.sub(r'\s+', ' ', cleaned).strip()    
+
+def sanitize_course_title(course_title):
+    parts = course_title.split()
+    
+    # Remove the first and last items
+    if len(parts) > 2:  # Make sure there are enough parts to remove first and last
+        filtered_parts = parts[1:-1]
+    else:
+        filtered_parts = parts  # If less than 3 parts, keep all parts
+    
+    # Join the remaining parts back into a string
+    course_title = ' '.join(filtered_parts)
+    course_id = sanitize_filename(parts[0])
+    
+    return course_id, course_title
+
 def get_course_list(session):
     """Extracts all course names and their links from the All Courses page."""
     response = session.get(COURSES_URL)
@@ -160,10 +180,10 @@ def get_course_list(session):
                 # Look for the first non-empty text in the row
                 for col in cols:
                     if col.find('a'):
-                        course_name = col.find('a').get_text(strip=True)
+                        course_name = col.find('a').get_text(strip=True) # type: ignore
                         break
                     elif col.find('span'):
-                        course_name = col.find('span').get_text(strip=True)
+                        course_name = col.find('span').get_text(strip=True) # type: ignore
                         break
                     elif col.get_text(strip=True) and len(col.get_text(strip=True)) > 2:
                         # If it's a reasonable length text, use it
@@ -174,14 +194,17 @@ def get_course_list(session):
                 if not course_name:
                     first_col = cols[0]
                     if first_col.find('a'):
-                        course_name = first_col.find('a').get_text(strip=True)
+                        course_name = first_col.find('a').get_text(strip=True) # type: ignore
                     else:
                         course_name = first_col.get_text(strip=True)
+                
+                course_id, course_name = sanitize_course_title(course_name)
                 
                 # Add to courses list
                 courses.append({
                     "url": course_url,
-                    "name": course_name
+                    "name": course_name,
+                    "id": course_id
                 })
                 
             except Exception as e:
