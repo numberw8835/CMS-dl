@@ -1,10 +1,21 @@
 import argparse
 import json
+import signal
+import sys
 from cms_auth import authenticate
 from cms_config import load_credentials, save_credentials, load_course_definitions
 from cms_modules import download_course, get_course_list
 
+def handle_sigint(signum, frame):
+    print("Exiting...")
+    if 'session' in globals() and globals()['session'] is not None:
+        globals()['session'].close()
+    sys.exit(0)
+
 def main():
+    # Set up signal handler for graceful exit on Ctrl+C
+    signal.signal(signal.SIGINT, handle_sigint)
+
     parser = argparse.ArgumentParser(description="Download course materials from GUC CMS")
     parser.add_argument("-c", "--course", help="URL of the course page to download materials from")
     parser.add_argument("--sync", action="store_true", help="Syncs the courses in the courses.json file")
@@ -21,7 +32,7 @@ def main():
     # Handle credentials
     username = args.username
     password = args.password
-    
+
     if not (username and password):
         username, password = load_credentials()
         if not (username and password):
@@ -35,7 +46,7 @@ def main():
     except ValueError as e:
         print(f"Authentication failed: {e}")
         return
-    
+
     # Save credentials
     save_credentials(username, password)
 
