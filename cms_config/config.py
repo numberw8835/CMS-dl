@@ -34,7 +34,13 @@ def load_course_definitions():
         try:  
             with open(config_path, 'r') as f:  
                 return json.load(f)  
-        except (json.JSONDecodeError, FileNotFoundError):  
-            print(f"Warning: Could not load course definitions from {config_path}")
+        except json.JSONDecodeError as e1:  
+            print(f"Error: Could not parse courses.json: {e1}")
+            return {}
+        except FileNotFoundError as e2:  
+            print(f"Error: courses.json not found: {e2}")
+            return {}
+        except Exception as e3:  
+            print(f"Error: Could not load courses.json: {e3}")
             return {}
     return {}  

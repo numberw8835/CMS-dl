@@ -16,7 +16,7 @@ def main():
     args = parser.parse_args()
 
     if not args.sync and not args.course and not args.get_courses:
-        parser.error("Either --course or --update is required")
+        parser.error("Either --course or --update is required, or --get-courses")
 
     # Handle credentials
     username = args.username

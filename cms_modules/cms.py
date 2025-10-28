@@ -27,9 +27,12 @@ def download_file(session, file_url, save_filename, delay=1):
         print(f"File {full_filename} already exists, skipping download.")
         return
     
-    response = session.get(file_url, stream=True)
-    sleep(delay)  # Add delay to prevent server stress
-    response.raise_for_status()
+    try:
+        response = session.get(file_url, stream=True)
+        sleep(delay)  # Add delay to prevent server stress
+        response.raise_for_status()
+    except:
+        pass
     
     # Get the total file size
     total_size = int(response.headers.get('content-length', 0))
