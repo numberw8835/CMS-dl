@@ -55,6 +55,8 @@ def main():
             print(f"Saved {len(courses)} courses to courses.json")
     except Exception as e:
         print(f"Failed to download course materials: {e}")
+    finally:
+        session.close()
 
 if __name__ == "__main__":
     main()
