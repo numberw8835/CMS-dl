@@ -14,7 +14,7 @@ def get_extension(file_url):
 
 # Clean up filenames
 def sanitize_filename(name: str) -> str:
-    cleaned = re.sub(r'[\\/:\*\?"<>\|\t]+', '', name)
+    cleaned = re.sub(r'[\\/:\*\?"<>\|]+', '', name)
     return re.sub(r'\s+', ' ', cleaned).strip()
 
 def download_file(session, file_url, save_filename, delay=1):
