@@ -166,13 +166,8 @@ def sanitize_course_title(course_title):
     
     return course_id, course_title
 
-def get_course_list(session, semester_id_filter=None):
-    """Extracts all course names and their links from the All Courses page.
-
-    Args:
-        session: The session object for making requests
-        semester_id_filter: Optional string or list of semester IDs to filter by (e.g., "123" or ["123", "124"])
-    """
+def get_course_list(session):
+    """Extracts all course names and their links from the All Courses page."""
     response = session.get(COURSES_URL)
     response.raise_for_status()
 
@@ -185,12 +180,6 @@ def get_course_list(session, semester_id_filter=None):
     )
 
     courses = []
-
-    # Convert semester_id_filter to a list for easier checking
-    if semester_id_filter is not None:
-        if isinstance(semester_id_filter, str):
-            semester_id_filter = [semester_id_filter]
-        semester_id_filter = [sid.strip() for sid in semester_id_filter]
 
     # Process each table (semester)
     for table in tables:
@@ -205,16 +194,13 @@ def get_course_list(session, semester_id_filter=None):
                 course_id = cols[3].get_text(strip=True)
                 season_id = cols[4].get_text(strip=True)
 
-                # Filter by semester ID if specified
-                if semester_id_filter and season_id not in semester_id_filter:
-                    continue
-
                 # Construct course URL
                 course_url = f"{BASE_URL}/apps/student/CourseViewStn.aspx?id={course_id}&sid={season_id}"
 
-                # Extract course name
+                # Extract course name - more robust approach
                 course_name = ""
 
+                # Look for the first non-empty text in the row
                 for col in cols:
                     if col.find('a'):
                         course_name = col.find('a').get_text(strip=True)
@@ -223,9 +209,11 @@ def get_course_list(session, semester_id_filter=None):
                         course_name = col.find('span').get_text(strip=True)
                         break
                     elif col.get_text(strip=True) and len(col.get_text(strip=True)) > 2:
+                        # If it's a reasonable length text, use it
                         course_name = col.get_text(strip=True)
                         break
 
+                # If we still don't have a name, try to get it from the first column
                 if not course_name:
                     first_col = cols[0]
                     if first_col.find('a'):
@@ -235,16 +223,16 @@ def get_course_list(session, semester_id_filter=None):
 
                 course_id, course_name = sanitize_course_title(course_name)
 
-                # Add to courses list with semester ID
-                print(f"Found course: {course_name} (ID: {course_id}, SID: {season_id})")
+                # Add to courses list
+                print(f"Found course: {course_name} (ID: {course_id})")
                 courses.append({
                     "url": course_url,
                     "name": course_name,
-                    "id": course_id,
-                    "semester_id": season_id
+                    "id": course_id
                 })
 
             except Exception as e:
+
                 print(f"Error processing row: {e}")
                 continue
 
