@@ -113,7 +113,7 @@ def download_course(session, course_url, course_name="", delay=1, output=""):
         print(f"📂 Created directory: {course_path}")
     else:
         course_path = ""
-        course_path = os.path.join(os.getcwd(), "DownloadedCourses")
+        course_path = os.path.join(os.getcwd(), "Material")
         os.makedirs(course_path, exist_ok=True)
 
     # Download each material
@@ -161,6 +161,7 @@ def sanitize_course_title(course_title):
     # Join the remaining parts back into a string
     course_title = ' '.join(filtered_parts)
     course_id = sanitize_filename(parts[0])
+    course_id = re.sub(r'[()]+', '', course_id)  # Remove brackets from course_id
     
     return course_id, course_title
 
