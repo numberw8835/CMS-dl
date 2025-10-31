@@ -57,7 +57,7 @@ def main():
             print(f"\n🔄 Syncing {len(courses)} courses...")
             for course in courses:
                 print(f"⚙️ Syncing {course['name']}...")
-                download_course(session, course["url"], delay=args.delay, output=args.output)
+                download_course(session, course["url"], course['name'], delay=args.delay, output=args.output)
         elif args.get_courses:
             print("\n🌐 Fetching all available courses from CMS...")
             courses = get_course_list(session)
@@ -69,7 +69,7 @@ def main():
             for course in courses:
                 if course["id"] == args.course_id:
                     print(f"Downloading course with ID: {args.course_id}...")
-                    download_course(session, course["url"], delay=args.delay, output=args.output)
+                    download_course(session, course["url"], course['name'], delay=args.delay, output=args.output)
                     break
             else:
                 print(f"\n❌ Course with ID {args.course_id} not found!")
