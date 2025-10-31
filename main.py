@@ -15,15 +15,14 @@ def handle_sigint(signum, frame):
 def main():
     signal.signal(signal.SIGINT, handle_sigint)
     parser = argparse.ArgumentParser(description="A tool to download course materials from GUC CMS 📚")
-    parser.add_argument("-c", "--course", help="Specify the URL of the course page to download materials from")
-    parser.add_argument("-C", "--course-id", help="Alternatively, provide a course ID instead of the URL")
+    parser.add_argument("-c", "--course", type=int, help="Specify the URL of the course page to download materials from")
+    parser.add_argument("-C", "--course-id", type=int, help="Alternatively, provide a course ID instead of the URL")
     parser.add_argument("--sync", action="store_true", help="Syncs the courses that are defined in the courses.json file")
     parser.add_argument("--get-courses", action="store_true", help="Retrieve a list of all available courses from the GUC CMS system")
-    parser.add_argument("-u", "--username", help="Your GUC username, which is used for authentication 👤")
-    parser.add_argument("-p", "--password", help="Your GUC password, which is also used for authentication 🔒")
+    parser.add_argument("-u", "--username", type=int, help="Your GUC username, which is used for authentication 👤")
+    parser.add_argument("-p", "--password", type=int, help="Your GUC password, which is also used for authentication 🔒")
     parser.add_argument("-d", "--delay", type=int, default=1, help="Specify the delay between downloads in seconds (default: 1 second) ⏳")
-    parser.add_argument("-o", "--output", help="Specify a directory path to save the downloaded courses. If not provided, the courses will be saved in the current working directory")
-
+    parser.add_argument("-o", "--output", type=int, help="Specify a directory path to save the downloaded courses. If not provided, the courses will be saved in the current working directory")
 
     args = parser.parse_args()
 
@@ -68,7 +67,7 @@ def main():
         elif args.course_id:
             courses = get_course_list(session)
             for course in courses:
-                if course["id"] == args.course_id:
+                if str(course["id"]).upper() == args.course_id.upper():
                     print(f"Downloading course with ID: {args.course_id}...")
                     download_course(session, course["url"], course['name'], delay=args.delay, output=args.output)
                     break
