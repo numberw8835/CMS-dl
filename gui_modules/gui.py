@@ -1,7 +1,6 @@
 import customtkinter as ctk
 import tkinter as tk
 from tkinter import messagebox, filedialog
-import json
 import os
 import threading
 from pathlib import Path
@@ -941,12 +940,3 @@ class SettingsFrame(ctk.CTkFrame):
             messagebox.showinfo("Success", "Settings saved successfully! ✅")
         else:
             messagebox.showerror("Error", "Settings saved but authentication failed. Please check credentials.")
-
-
-def main():
-    app = CMSDownloaderApp()
-    app.mainloop()
-
-
-if __name__ == "__main__":
-    main()

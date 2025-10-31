@@ -2,367 +2,306 @@
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=572&sid=67",
     "name": "Artificial Intelligence",
-    "id": "CSEN901",
-    "semester_id": 7
+    "id": "CSEN901"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=573&sid=67",
     "name": "Advanced Computer lab",
-    "id": "CSEN903",
-    "semester_id": 7
+    "id": "CSEN903"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=1577&sid=67",
     "name": "Machine Learning",
-    "id": "CSEN1022",
-    "semester_id": 7
+    "id": "CSEN1022"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=2721&sid=67",
     "name": "Computational Intelligence and Neural Networks",
-    "id": "CSEN1121",
-    "semester_id": 7
+    "id": "CSEN1121"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=571&sid=67",
     "name": "Computer Vision",
-    "id": "DMET901",
-    "semester_id": 7
+    "id": "DMET901"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=124&sid=66",
     "name": "Mathematics V (Discrete Math)",
-    "id": "MATH501",
-    "semester_id": 6
+    "id": "MATH501"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=549&sid=65",
     "name": "Engineering Bachelor Thesis",
-    "id": "ENG800",
-    "semester_id": 5
+    "id": "ENG800"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=314&sid=64",
     "name": "Analysis and Design of Algorithms",
-    "id": "CSEN703",
-    "semester_id": 4
+    "id": "CSEN703"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=315&sid=64",
     "name": "Microprocessors",
-    "id": "CSEN702",
-    "semester_id": 4
+    "id": "CSEN702"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=312&sid=64",
     "name": "Computer Graphics",
-    "id": "DMET502",
-    "semester_id": 4
+    "id": "DMET502"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=316&sid=64",
     "name": "Advanced Computer lab",
-    "id": "CSEN704",
-    "semester_id": 4
+    "id": "CSEN704"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=313&sid=64",
     "name": "Embedded System Architecture",
-    "id": "CSEN701",
-    "semester_id": 4
+    "id": "CSEN701"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=-104&sid=64",
     "name": "Thesis Topics -",
-    "id": "Bachelor",
-    "semester_id": 4
+    "id": "Bachelor"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=74&sid=-38",
     "name": "Math IV Probability and Statistics",
-    "id": "MATH401",
-    "semester_id": 2
+    "id": "MATH401"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=437&sid=62",
     "name": "Data Bases II",
-    "id": "CSEN604",
-    "semester_id": 2
+    "id": "CSEN604"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=403&sid=62",
     "name": "Network & Media lab",
-    "id": "DMET602",
-    "semester_id": 2
+    "id": "DMET602"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=73&sid=62",
     "name": "Basic German 4",
-    "id": "DE404",
-    "semester_id": 2
+    "id": "DE404"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=436&sid=62",
     "name": "Software Engineering",
-    "id": "CSEN603",
-    "semester_id": 2
+    "id": "CSEN603"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=176&sid=62",
     "name": "Introduction to Management",
-    "id": "MNGT601",
-    "semester_id": 2
+    "id": "MNGT601"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=175&sid=62",
     "name": "Operating Systems",
-    "id": "CSEN602",
-    "semester_id": 2
+    "id": "CSEN602"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=174&sid=62",
     "name": "Computer System Architecture",
-    "id": "CSEN601",
-    "semester_id": 2
+    "id": "CSEN601"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=127&sid=61",
     "name": "Theory of Computation",
-    "id": "CSEN502",
-    "semester_id": 1
+    "id": "CSEN502"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=125&sid=61",
     "name": "Introduction to media Engineering",
-    "id": "DMET501",
-    "semester_id": 1
+    "id": "DMET501"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=429&sid=61",
     "name": "Digital System Design",
-    "id": "CSEN605",
-    "semester_id": 1
+    "id": "CSEN605"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=34&sid=61",
     "name": "Research Paper Writing (A2)",
-    "id": "RPW401",
-    "semester_id": 1
+    "id": "RPW401"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=124&sid=61",
     "name": "Mathematics V (Discrete Math)",
-    "id": "MATH501",
-    "semester_id": 1
+    "id": "MATH501"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=411&sid=61",
     "name": "Introduction To Communication Networks",
-    "id": "CSEN503",
-    "semester_id": 1
+    "id": "CSEN503"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=126&sid=61",
     "name": "Data Base I",
-    "id": "CSEN501",
-    "semester_id": 1
+    "id": "CSEN501"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=73&sid=61",
     "name": "Basic German 4",
-    "id": "DE404",
-    "semester_id": 1
+    "id": "DE404"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=80&sid=59",
     "name": "Concepts of Programming Languages",
-    "id": "CSEN403",
-    "semester_id": 9
+    "id": "CSEN403"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=47&sid=59",
     "name": "Electrical Circuits II",
-    "id": "ELCT401",
-    "semester_id": 9
+    "id": "ELCT401"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=401&sid=59",
     "name": "Signal & System Theory",
-    "id": "COMM401",
-    "semester_id": 9
+    "id": "COMM401"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=402&sid=59",
     "name": "Computer Programming Lab",
-    "id": "CSEN401",
-    "semester_id": 9
+    "id": "CSEN401"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=74&sid=59",
     "name": "Math IV Probability and Statistics",
-    "id": "MATH401",
-    "semester_id": 9
+    "id": "MATH401"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=101&sid=59",
     "name": "Communication & Presentation Skills (A2)",
-    "id": "CPS402",
-    "semester_id": 9
+    "id": "CPS402"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=73&sid=59",
     "name": "Basic German 4",
-    "id": "DE404",
-    "semester_id": 9
+    "id": "DE404"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=77&sid=59",
     "name": "Computer Organization and System Programming",
-    "id": "CSIS402",
-    "semester_id": 9
+    "id": "CSIS402"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=64&sid=58",
     "name": "Basic German 3",
-    "id": "DE303",
-    "semester_id": 8
+    "id": "DE303"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=399&sid=58",
     "name": "Physics III (t)",
-    "id": "PHYSt301",
-    "semester_id": 8
+    "id": "PHYSt301"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=16&sid=58",
     "name": "Scientific Methods (A1)",
-    "id": "SM101",
-    "semester_id": 8
+    "id": "SM101"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=351&sid=58",
     "name": "Data structures and Algorithms",
-    "id": "CSEN301",
-    "semester_id": 8
+    "id": "CSEN301"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=45&sid=58",
     "name": "Mathematics III",
-    "id": "MATH301",
-    "semester_id": 8
+    "id": "MATH301"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=20&sid=58",
     "name": "Electrical Circuits I",
-    "id": "ELCT301",
-    "semester_id": 8
+    "id": "ELCT301"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=398&sid=58",
     "name": "Physics III (P)",
-    "id": "PHYSp301",
-    "semester_id": 8
+    "id": "PHYSp301"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=1184&sid=57",
     "name": "Chemistry",
-    "id": "CHEMp102",
-    "semester_id": 7
+    "id": "CHEMp102"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=14&sid=56",
     "name": "English for Academic Purposes (A1)",
-    "id": "AS102",
-    "semester_id": 6
+    "id": "AS102"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=432&sid=56",
     "name": "Production Technology",
-    "id": "EDPT201",
-    "semester_id": 6
+    "id": "EDPT201"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=450&sid=56",
     "name": "Physics II",
-    "id": "PHYS202",
-    "semester_id": 6
+    "id": "PHYS202"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=19&sid=56",
     "name": "Introduction to Computer Programming",
-    "id": "CSEN202",
-    "semester_id": 6
+    "id": "CSEN202"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=17&sid=56",
     "name": "Mathematics I",
-    "id": "MATH203",
-    "semester_id": 6
+    "id": "MATH203"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=79&sid=56",
     "name": "Digital Logic Design",
-    "id": "ELCT201",
-    "semester_id": 6
+    "id": "ELCT201"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=15&sid=56",
     "name": "Basic German 1",
-    "id": "DE101",
-    "semester_id": 6
+    "id": "DE101"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=33&sid=56",
     "name": "Basic German 2",
-    "id": "DE202",
-    "semester_id": 6
+    "id": "DE202"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=13&sid=55",
     "name": "Introduction to Academic English (B)",
-    "id": "AE101",
-    "semester_id": 5
+    "id": "AE101"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=141&sid=55",
     "name": "Physics",
-    "id": "PHYS101",
-    "semester_id": 5
+    "id": "PHYS101"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=2&sid=55",
     "name": "Maths",
-    "id": "MATH103",
-    "semester_id": 5
+    "id": "MATH103"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=350&sid=55",
     "name": "Introduction to computer science",
-    "id": "CSEN102",
-    "semester_id": 5
+    "id": "CSEN102"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=49&sid=55",
     "name": "Engineering Drawing & Design",
-    "id": "ENGD301",
-    "semester_id": 5
+    "id": "ENGD301"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=1183&sid=55",
     "name": "Chemistry",
-    "id": "CHEMt102",
-    "semester_id": 5
+    "id": "CHEMt102"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=15&sid=55",
     "name": "Basic German 1",
-    "id": "DE101",
-    "semester_id": 5
+    "id": "DE101"
   },
   {
     "url": "https://cms.guc.edu.eg/apps/student/CourseViewStn.aspx?id=432&sid=55",
     "name": "Production Technology",
-    "id": "EDPT201",
-    "semester_id": 5
+    "id": "EDPT201"
   }
 ]
