@@ -397,7 +397,9 @@ class DownloadFrame(ctk.CTkFrame):
         self.controller = controller
         self.course_checkboxes = {}
         self.is_downloading = False
-        
+        self.all_courses = []  # Store all fetched courses
+        self.available_semesters = []  # Store available semester IDs
+
         # Configure grid for responsiveness
         self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
@@ -431,7 +433,7 @@ class DownloadFrame(ctk.CTkFrame):
         # Main content
         content = ctk.CTkFrame(self)
         content.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
-        content.grid_rowconfigure(1, weight=1)
+        content.grid_rowconfigure(2, weight=1)
         content.grid_columnconfigure(0, weight=1)
         
         # Top controls
@@ -464,10 +466,32 @@ class DownloadFrame(ctk.CTkFrame):
         )
         deselect_all_btn.pack(side="left")
         
+        # Semester filter
+        filter_frame = ctk.CTkFrame(content, fg_color="transparent")
+        filter_frame.grid(row=1, column=0, sticky="ew", pady=(0, 15))
+
+        filter_label = ctk.CTkLabel(
+            filter_frame,
+            text="Filter by Semester:",
+            font=ctk.CTkFont(size=13)
+        )
+        filter_label.pack(side="left", padx=(0, 10))
+
+        self.semester_var = ctk.StringVar(value="All Semesters")
+        self.semester_menu = ctk.CTkOptionMenu(
+            filter_frame,
+            values=["All Semesters"],
+            variable=self.semester_var,
+            width=200,
+            height=35,
+            command=self.filter_by_semester
+        )
+        self.semester_menu.pack(side="left")
+
         # Course list frame with scrollbar
         list_frame = ctk.CTkFrame(content)
-        list_frame.grid(row=1, column=0, sticky="nsew", pady=(0, 15))
-        
+        list_frame.grid(row=2, column=0, sticky="nsew", pady=(0, 15))
+
         # Scrollable frame for courses
         self.courses_scroll = ctk.CTkScrollableFrame(
             list_frame,
@@ -526,13 +550,39 @@ class DownloadFrame(ctk.CTkFrame):
     
     def display_courses(self, courses):
         """Display courses in the scrollable frame"""
+        # Store all courses
+        self.all_courses = courses
+
+        # Extract unique semester IDs
+        semester_ids = set()
+        for course in courses:
+            sid = course.get('semester_id', '')
+            if sid:
+                semester_ids.add(sid)
+
+        self.available_semesters = sorted(list(semester_ids))
+
+        # Update semester dropdown
+        semester_options = ["All Semesters"] + self.available_semesters
+        self.semester_menu.configure(values=semester_options)
+        self.semester_var.set("All Semesters")
+
+        # Store courses
+        self.controller.courses = courses
+
+        # Display courses (initially all)
+        self._display_filtered_courses(courses)
+
+        self.status_label.configure(text=f"Found {len(courses)} courses across {len(self.available_semesters)} semesters")
+        self.progress_bar.set(1.0)
+        self.after(1000, lambda: self.progress_bar.set(0))
+
+    def _display_filtered_courses(self, courses):
+        """Helper method to display a filtered list of courses"""
         # Clear existing checkboxes
         for widget in self.courses_scroll.winfo_children():
             widget.destroy()
         self.course_checkboxes.clear()
-        
-        # Store courses
-        self.controller.courses = courses
         
         # Create checkboxes for each course
         for course in courses:
@@ -541,9 +591,10 @@ class DownloadFrame(ctk.CTkFrame):
             course_frame = ctk.CTkFrame(self.courses_scroll)
             course_frame.pack(fill="x", pady=5, padx=5)
             
+            semester_info = f" [SID: {course.get('semester_id', 'N/A')}]"
             checkbox = ctk.CTkCheckBox(
                 course_frame,
-                text=f"{course['name']} (ID: {course['id']})",
+                text=f"{course['name']} (ID: {course['id']}){semester_info}",
                 variable=var,
                 font=ctk.CTkFont(size=13)
             )
@@ -553,11 +604,22 @@ class DownloadFrame(ctk.CTkFrame):
                 'var': var,
                 'course': course
             }
-        
-        self.status_label.configure(text=f"Found {len(courses)} courses")
-        self.progress_bar.set(1.0)
-        self.after(1000, lambda: self.progress_bar.set(0))
-    
+
+    def filter_by_semester(self, selected_semester):
+        """Filter courses by selected semester ID"""
+        if selected_semester == "All Semesters":
+            filtered_courses = self.all_courses
+        else:
+            filtered_courses = [
+                course for course in self.all_courses
+                if course.get('semester_id') == selected_semester
+            ]
+
+        self._display_filtered_courses(filtered_courses)
+        self.status_label.configure(
+            text=f"Showing {len(filtered_courses)} courses for {selected_semester}"
+        )
+
     def select_all(self):
         """Select all courses"""
         for item in self.course_checkboxes.values():
