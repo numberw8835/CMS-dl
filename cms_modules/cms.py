@@ -23,7 +23,7 @@ def download_file(session, file_url, save_filename, delay=1):
 
     # Check if file already exists
     if os.path.exists(full_filename):
-        print(f"✅ File {full_filename} already exists, skipping download.")
+        print(f"File {full_filename} already exists, skipping download.")
         return
 
     try:
@@ -31,7 +31,7 @@ def download_file(session, file_url, save_filename, delay=1):
         sleep(delay)  # Add delay to prevent server stress
         response.raise_for_status()
     except Exception as e:
-        print(f"❌ Failed to download {file_url}: {str(e)}")
+        print(f"Failed to download {file_url}: {str(e)}")
         return
 
     # Get the total file size
@@ -42,16 +42,16 @@ def download_file(session, file_url, save_filename, delay=1):
         if total_size > 0:
             # Use tqdm for progress bar
             with tqdm(total=total_size, unit='B', unit_scale=True,
-                      desc=f"📥 Downloading {sanitized_filename}") as pbar:
+                      desc=f"Downloading {sanitized_filename}") as pbar:
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
                         f.write(chunk)
                         pbar.update(len(chunk))
-            print(f"✅ Successfully downloaded: {full_filename}")
+            print(f"Successfully downloaded: {full_filename}")
         else:
             # If no content-length header, write without progress bar
             f.write(response.content)
-            print(f"⚠️ Downloaded file with unknown size: {sanitized_filename}")
+            print(f"Downloaded file with unknown size: {sanitized_filename}")
 
 def get_material_links(page_content):
     """Parses HTML to find links to course materials."""
@@ -91,7 +91,7 @@ def download_course(session, course_url, course_name="", delay=1, output=""):
 
     if output:
         if not os.path.exists(output):
-            raise FileNotFoundError(f"❌ Output directory {output} does not exist.")
+            raise FileNotFoundError(f"Output directory {output} does not exist.")
     else:
         output = ""
 
@@ -100,17 +100,18 @@ def download_course(session, course_url, course_name="", delay=1, output=""):
         os.makedirs(course_path, exist_ok=True)
         original_directory = os.getcwd()
         os.chdir(course_path)
-        print(f"📂 Created directory: {course_path}")
+        print(f"Created directory: {course_path}")
     elif output and not course_name:
         course_path = output
         if not os.path.exists(course_path):
-            raise FileNotFoundError(f"❌ Output directory {output} does not exist.")
+            raise FileNotFoundError(f"Output directory {output} does not exist.")
+        os.chdir(course_path)
     elif course_name and output:
         course_path = os.path.join(output, course_name)
         os.makedirs(course_path, exist_ok=True)
         original_directory = os.getcwd()
         os.chdir(course_path)
-        print(f"📂 Created directory: {course_path}")
+        print(f"Created directory: {course_path}")
     else:
         course_path = ""
         course_path = os.path.join(os.getcwd(), "Material")
@@ -122,7 +123,7 @@ def download_course(session, course_url, course_name="", delay=1, output=""):
             full_url = f"{BASE_URL}{link}"
             download_file(session, full_url, name, delay)
     else:
-        print(f"⚠️ Warning: Mismatch in counts - {len(material_links)} links and {len(material_names)} names")
+        print(f"Warning: Mismatch in counts - {len(material_links)} links and {len(material_names)} names")
         print("Generating default names for unnamed links... Don't blame me, blame the uni for their bad code.")
         print("-"*25)
 
@@ -144,10 +145,10 @@ def download_course(session, course_url, course_name="", delay=1, output=""):
     # Go back to parent dir
     os.chdir(original_directory)
 
-# Clean up filenames    
-def sanitize_filename(name: str) -> str:    
-    cleaned = re.sub(r'[\\/:\*\?"<>\|]+', '', name)    
-    return re.sub(r'\s+', ' ', cleaned).strip()    
+# Clean up filenames
+def sanitize_filename(name: str) -> str:
+    cleaned = re.sub(r'[\\/:\*\?"<>\|]+', '', name)
+    return re.sub(r'\s+', ' ', cleaned).strip()
 
 def sanitize_course_title(course_title):
     parts = course_title.split()
@@ -223,7 +224,7 @@ def get_course_list(session):
                 course_id, course_name = sanitize_course_title(course_name)
 
                 # Add to courses list
-                print(f"📚 Found course: {course_name} (ID: {course_id})")
+                print(f"Found course: {course_name} (ID: {course_id})")
                 courses.append({
                     "url": course_url,
                     "name": course_name,
@@ -231,7 +232,8 @@ def get_course_list(session):
                 })
 
             except Exception as e:
-                print(f"❌ Error processing row: {e}")
+
+                print(f"Error processing row: {e}")
                 continue
 
     return courses
