@@ -79,7 +79,7 @@ def get_material_names(page_content):
             
     return names
 
-def download_course(session, course_url, course_name = "", delay = 1):
+def download_course(session, course_url, course_name="", delay=1, output=""):
     """Downloads all materials for a given course."""
     response = session.get(course_url)
     response.raise_for_status()
@@ -89,11 +89,32 @@ def download_course(session, course_url, course_name = "", delay = 1):
     material_links = get_material_links(page_html)
     material_names = get_material_names(page_html)
 
-    # Create a folder for the course, if it was provided
-    if course_name:
-        os.makedirs(course_name, exist_ok=True)
-        os.chdir(course_name)
-        print(f"📂 Created directory: {course_name}")
+    if output:
+        if not os.path.exists(output):
+            raise FileNotFoundError(f"❌ Output directory {output} does not exist.")
+    else:
+        output = ""
+
+    if course_name and not output:
+        course_path = course_name
+        os.makedirs(course_path, exist_ok=True)
+        original_directory = os.getcwd()
+        os.chdir(course_path)
+        print(f"📂 Created directory: {course_path}")
+    elif output and not course_name:
+        course_path = output
+        if not os.path.exists(course_path):
+            raise FileNotFoundError(f"❌ Output directory {output} does not exist.")
+    elif course_name and output:
+        course_path = os.path.join(output, course_name)
+        os.makedirs(course_path, exist_ok=True)
+        original_directory = os.getcwd()
+        os.chdir(course_path)
+        print(f"📂 Created directory: {course_path}")
+    else:
+        course_path = ""
+        course_path = os.path.join(os.getcwd(), "DownloadedCourses")
+        os.makedirs(course_path, exist_ok=True)
 
     # Download each material
     if len(material_links) == len(material_names):
@@ -120,9 +141,8 @@ def download_course(session, course_url, course_name = "", delay = 1):
             name = material_names[i] if i < len(material_names) else f"unnamed_{i+1}"
             download_file(session, full_url, name, delay)
 
-    # Go back to parent dir, if name provided
-    if course_name:
-        os.chdir("..")
+    # Go back to parent dir
+    os.chdir(original_directory)
 
 # Clean up filenames    
 def sanitize_filename(name: str) -> str:    
