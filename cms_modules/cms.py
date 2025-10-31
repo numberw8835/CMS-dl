@@ -12,13 +12,18 @@ def get_extension(file_url):
     parts = file_url.split('.')
     return '.' + parts[-1] if len(parts) > 1 else ".error"
 
+# Clean up filenames
+def sanitize_filename(name: str) -> str:
+    cleaned = re.sub(r'[\\/:\*\?"<>\|\t]+', '', name)
+    return re.sub(r'\s+', ' ', cleaned).strip()
+
 def download_file(session, file_url, save_filename, delay=1):
     """Downloads a file and saves it, checking if it already exists."""
     # Generate full file name with extension
     file_extension = get_extension(file_url)
 
     # Sanitize the filename to remove invalid characters
-    sanitized_filename = re.sub(r'[\\/*?:"<>|]', "", save_filename)
+    sanitized_filename = sanitize_filename(save_filename)
     full_filename = sanitized_filename + file_extension
 
     # Check if file already exists
@@ -144,11 +149,6 @@ def download_course(session, course_url, course_name="", delay=1, output=""):
 
     # Go back to parent dir
     os.chdir(original_directory)
-
-# Clean up filenames
-def sanitize_filename(name: str) -> str:
-    cleaned = re.sub(r'[\\/:\*\?"<>\|]+', '', name)
-    return re.sub(r'\s+', ' ', cleaned).strip()
 
 def sanitize_course_title(course_title):
     parts = course_title.split()
