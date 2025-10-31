@@ -15,14 +15,14 @@ def handle_sigint(signum, frame):
 def main():
     signal.signal(signal.SIGINT, handle_sigint)
     parser = argparse.ArgumentParser(description="A tool to download course materials from GUC CMS 📚")
-    parser.add_argument("-c", "--course", type=int, help="Specify the URL of the course page to download materials from")
-    parser.add_argument("-C", "--course-id", type=int, help="Alternatively, provide a course ID instead of the URL")
+    parser.add_argument("-c", "--course", type=str, help="Specify the URL of the course page to download materials from")
+    parser.add_argument("-C", "--course-id", type=str, help="Alternatively, provide a course ID instead of the URL")
     parser.add_argument("--sync", action="store_true", help="Syncs the courses that are defined in the courses.json file")
     parser.add_argument("--get-courses", action="store_true", help="Retrieve a list of all available courses from the GUC CMS system")
-    parser.add_argument("-u", "--username", type=int, help="Your GUC username, which is used for authentication 👤")
-    parser.add_argument("-p", "--password", type=int, help="Your GUC password, which is also used for authentication 🔒")
+    parser.add_argument("-u", "--username", type=str, help="Your GUC username, which is used for authentication 👤")
+    parser.add_argument("-p", "--password", type=str, help="Your GUC password, which is also used for authentication 🔒")
     parser.add_argument("-d", "--delay", type=int, default=1, help="Specify the delay between downloads in seconds (default: 1 second) ⏳")
-    parser.add_argument("-o", "--output", type=int, help="Specify a directory path to save the downloaded courses. If not provided, the courses will be saved in the current working directory")
+    parser.add_argument("-o", "--output", type=str, help="Specify a directory path to save the downloaded courses. If not provided, the courses will be saved in the current working directory")
 
     args = parser.parse_args()
 
