@@ -3,3 +3,4 @@ argparse
 requests-ntlm
 beautifulsoup4
 tqdm
+customtkinter
