@@ -19,13 +19,14 @@ eggs/
 lib/
 lib64/
 parts/
+pyrightconfig.json
 sdist/
 var/
 wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-
+.zed/
 # PyInstaller
 dist/
 build/

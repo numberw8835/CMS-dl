@@ -1,23 +1,32 @@
+from asyncio import SelectorEventLoop
+from pickle import TUPLE
 import re
 import os
 from time import sleep
 from bs4 import BeautifulSoup
+import requests
+from requests.sessions import Request
 from tqdm import tqdm
 
 BASE_URL = "https://cms.guc.edu.eg"
 COURSES_URL = BASE_URL + "/apps/student/ViewAllCourseStn"
 
-def get_extension(file_url):
+
+def get_extension(file_url: str) -> str:
     """Extracts the file extension from a URL."""
-    parts = file_url.split('.')
-    return '.' + parts[-1] if len(parts) > 1 else ".error"
+    parts = file_url.split(".")
+    return "." + parts[-1] if len(parts) > 1 else ".error"
+
 
 # Clean up filenames
 def sanitize_filename(name: str) -> str:
-    cleaned = re.sub(r'[\\/:\*\?"<>\|]+', '', name)
-    return re.sub(r'\s+', ' ', cleaned).strip()
+    cleaned = re.sub(r'[\\/:\*\?"<>\|]+', "", name)
+    return re.sub(r"\s+", " ", cleaned).strip()
 
-def download_file(session, file_url, save_filename, delay=1):
+
+def download_file(
+    session: requests.Session, file_url: str, save_filename: str, delay: int = 1
+):
     """Downloads a file and saves it, checking if it already exists."""
     # Generate full file name with extension
     file_extension = get_extension(file_url)
@@ -40,14 +49,18 @@ def download_file(session, file_url, save_filename, delay=1):
         return
 
     # Get the total file size
-    total_size = int(response.headers.get('content-length', 0))
+    total_size = int(response.headers.get("content-length", 0))
 
     # Save the file with progress bar
-    with open(full_filename, 'wb') as f:
+    with open(full_filename, "wb") as f:
         if total_size > 0:
             # Use tqdm for progress bar
-            with tqdm(total=total_size, unit='B', unit_scale=True,
-                      desc=f"Downloading {sanitized_filename}") as pbar:
+            with tqdm(
+                total=total_size,
+                unit="B",
+                unit_scale=True,
+                desc=f"Downloading {sanitized_filename}",
+            ) as pbar:
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
                         f.write(chunk)
@@ -58,7 +71,8 @@ def download_file(session, file_url, save_filename, delay=1):
             f.write(response.content)
             print(f"Downloaded file with unknown size: {sanitized_filename}")
 
-def get_material_links(page_content):
+
+def get_material_links(page_content: str) -> list[str]:
     """Parses HTML to find links to course materials."""
     links = []
     for line in page_content.splitlines():
@@ -67,24 +81,32 @@ def get_material_links(page_content):
             links.append(link)
     return links
 
-def get_material_names(page_content):
-    """Parses HTML to find names of course materials using a regex pattern."""
-    soup = BeautifulSoup(page_content, 'html.parser')
-    names = []
-    
-    # Flexible pattern: any number of spaces, number, any number of spaces, dash, any number of spaces, letter
-    pattern = r'^\s*\d+\s*-\s*[a-zA-Z]'
 
-    for line in soup.get_text(separator='\n').splitlines():
+def get_material_names(page_content: str) -> list[str]:
+    """Parses HTML to find names of course materials using a regex pattern."""
+    soup = BeautifulSoup(page_content, "html.parser")
+    names = []
+
+    # Flexible pattern: any number of spaces, number, any number of spaces, dash, any number of spaces, letter
+    pattern = r"^\s*\d+\s*-\s*[a-zA-Z]"
+
+    for line in soup.get_text(separator="\n").splitlines():
         cleaned_line = line.strip()
-        
+
         # Check if the start of the line matches the pattern
         if re.match(pattern, cleaned_line):
             names.append(cleaned_line)
-            
+
     return names
 
-def download_course(session, course_url, course_name="", delay=1, output=""):
+
+def download_course(
+    session: requests.Session,
+    course_url: str,
+    course_name: str = "",
+    delay: int = 1,
+    output: str = "",
+):
     """Downloads all materials for a given course."""
     response = session.get(course_url)
     response.raise_for_status()
@@ -93,6 +115,7 @@ def download_course(session, course_url, course_name="", delay=1, output=""):
     # Extract the names and links
     material_links = get_material_links(page_html)
     material_names = get_material_names(page_html)
+    original_directory = os.getcwd()
 
     if output:
         if not os.path.exists(output):
@@ -103,7 +126,6 @@ def download_course(session, course_url, course_name="", delay=1, output=""):
     if course_name and not output:
         course_path = course_name
         os.makedirs(course_path, exist_ok=True)
-        original_directory = os.getcwd()
         os.chdir(course_path)
         print(f"Created directory: {course_path}")
     elif output and not course_name:
@@ -114,7 +136,6 @@ def download_course(session, course_url, course_name="", delay=1, output=""):
     elif course_name and output:
         course_path = os.path.join(output, course_name)
         os.makedirs(course_path, exist_ok=True)
-        original_directory = os.getcwd()
         os.chdir(course_path)
         print(f"Created directory: {course_path}")
     else:
@@ -128,45 +149,51 @@ def download_course(session, course_url, course_name="", delay=1, output=""):
             full_url = f"{BASE_URL}{link}"
             download_file(session, full_url, name, delay)
     else:
-        print(f"Warning: Mismatch in counts - {len(material_links)} links and {len(material_names)} names")
-        print("Generating default names for unnamed links... Don't blame me, blame the uni for their bad code.")
-        print("-"*25)
+        print(
+            f"Warning: Mismatch in counts - {len(material_links)} links and {len(material_names)} names"
+        )
+        print(
+            "Generating default names for unnamed links... Don't blame me, blame the uni for their bad code."
+        )
+        print("-" * 25)
 
         # Give an analysis of the found files and links
         for i, link in enumerate(material_links):
             if i < len(material_names):
                 name = material_names[i]
             else:
-                name = f"unnamed_{i+1}"
+                name = f"unnamed_{i + 1}"
             print(f"Link: {BASE_URL}{link}, Name: {name}")
 
-        print("-"*25)
+        print("-" * 25)
 
         for i, link in enumerate(material_links):
             full_url = f"{BASE_URL}{link}"
-            name = material_names[i] if i < len(material_names) else f"unnamed_{i+1}"
+            name = material_names[i] if i < len(material_names) else f"unnamed_{i + 1}"
             download_file(session, full_url, name, delay)
 
     # Go back to parent dir
     os.chdir(original_directory)
 
-def sanitize_course_title(course_title):
+
+def sanitize_course_title(course_title: str) -> tuple[str, str]:
     parts = course_title.split()
-    
+
     # Remove the first and last items
     if len(parts) > 2:  # Make sure there are enough parts to remove first and last
         filtered_parts = parts[1:-1]
     else:
         filtered_parts = parts  # If less than 3 parts, keep all parts
-    
+
     # Join the remaining parts back into a string
-    course_title = ' '.join(filtered_parts)
+    course_title = " ".join(filtered_parts)
     course_id = sanitize_filename(parts[0])
-    course_id = re.sub(r'[()]+', '', course_id)  # Remove brackets from course_id
-    
+    course_id = re.sub(r"[()]+", "", course_id)  # Remove brackets from course_id
+
     return course_id, course_title
 
-def get_course_list(session):
+
+def get_course_list(session: requests.Session) -> list[dict[str, str]]:
     """Extracts all course names and their links from the All Courses page."""
     response = session.get(COURSES_URL)
     response.raise_for_status()
@@ -175,8 +202,7 @@ def get_course_list(session):
 
     # Find all semester tables
     tables = soup.find_all(
-        "table",
-        class_="table table-hover table-striped table-bordered"
+        "table", class_="table table-hover table-striped table-bordered"
     )
 
     courses = []
@@ -202,11 +228,11 @@ def get_course_list(session):
 
                 # Look for the first non-empty text in the row
                 for col in cols:
-                    if col.find('a'):
-                        course_name = col.find('a').get_text(strip=True)
+                    if col.find("a"):
+                        course_name = col.find("a").get_text(strip=True)
                         break
-                    elif col.find('span'):
-                        course_name = col.find('span').get_text(strip=True)
+                    elif col.find("span"):
+                        course_name = col.find("span").get_text(strip=True)
                         break
                     elif col.get_text(strip=True) and len(col.get_text(strip=True)) > 2:
                         # If it's a reasonable length text, use it
@@ -216,8 +242,8 @@ def get_course_list(session):
                 # If we still don't have a name, try to get it from the first column
                 if not course_name:
                     first_col = cols[0]
-                    if first_col.find('a'):
-                        course_name = first_col.find('a').get_text(strip=True)
+                    if first_col.find("a"):
+                        course_name = first_col.find("a").get_text(strip=True)
                     else:
                         course_name = first_col.get_text(strip=True)
 
@@ -225,14 +251,11 @@ def get_course_list(session):
 
                 # Add to courses list
                 print(f"Found course: {course_name} (ID: {course_id})")
-                courses.append({
-                    "url": course_url,
-                    "name": course_name,
-                    "id": course_id
-                })
+                courses.append(
+                    {"url": course_url, "name": course_name, "id": course_id}
+                )
 
             except Exception as e:
-
                 print(f"Error processing row: {e}")
                 continue
 
