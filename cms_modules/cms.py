@@ -164,7 +164,7 @@ def download_course(
             with open(manual_file_path, "w", encoding="utf-8") as f:
                 f.write("[LINKS]\n")
                 for link in material_links:
-                    f.write(f"{link}\n")
+                    f.write(f"{BASE_URL}{link}\n")
                 f.write("\n[NAMES]\n")
                 for name in material_names:
                     f.write(f"{name}\n")
