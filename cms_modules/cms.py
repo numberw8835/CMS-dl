@@ -99,7 +99,6 @@ def get_material_names(page_content: str) -> list[str]:
 
     return names
 
-
 def download_course(
     session: requests.Session,
     course_url: str,
@@ -108,6 +107,11 @@ def download_course(
     output: str = "",
 ):
     """Downloads all materials for a given course."""
+
+    # FIX for TypeError: Handle NoneType passed from argparse
+    if output is None:
+        output = ""
+
     response = session.get(course_url)
     response.raise_for_status()
     page_html = response.text
@@ -115,66 +119,117 @@ def download_course(
     # Extract the names and links
     material_links = get_material_links(page_html)
     material_names = get_material_names(page_html)
+    
+    # Define at the top so it's always set
     original_directory = os.getcwd()
 
+    # --- Directory Setup ---
+    course_path = ""
     if output:
         if not os.path.exists(output):
             raise FileNotFoundError(f"Output directory {output} does not exist.")
-    else:
-        output = ""
-
-    if course_name and not output:
-        course_path = course_name
-        os.makedirs(course_path, exist_ok=True)
-        os.chdir(course_path)
-        print(f"Created directory: {course_path}")
-    elif output and not course_name:
-        course_path = output
-        if not os.path.exists(course_path):
-            raise FileNotFoundError(f"Output directory {output} does not exist.")
-        os.chdir(course_path)
-    elif course_name and output:
+    
+    if course_name:
         course_path = os.path.join(output, course_name)
-        os.makedirs(course_path, exist_ok=True)
-        os.chdir(course_path)
-        print(f"Created directory: {course_path}")
-    else:
-        course_path = ""
+    elif output: # course_name is empty but output is not
+        course_path = output
+    else: # Both are empty
         course_path = os.path.join(os.getcwd(), "Material")
-        os.makedirs(course_path, exist_ok=True)
+    
+    os.makedirs(course_path, exist_ok=True)
+    os.chdir(course_path)
+    if course_name:
+        print(f"Saving materials in: {course_path}")
 
-    # Download each material
+    # --- Download Logic ---
     if len(material_links) == len(material_names):
+        print(f"Found {len(material_links)} matching links and names.")
         for link, name in zip(material_links, material_names):
             full_url = f"{BASE_URL}{link}"
             download_file(session, full_url, name, delay)
     else:
+        # --- NEW MANUAL MISMATCH RESOLUTION ---
         print(
-            f"Warning: Mismatch in counts - {len(material_links)} links and {len(material_names)} names"
+            f"Warning: Mismatch in counts for {course_name} - {len(material_links)} links and {len(material_names)} names"
         )
-        print(
-            "Generating default names for unnamed links... Don't blame me, blame the uni for their bad code."
-        )
-        print("-" * 25)
+        
+        safe_course_name = sanitize_filename(course_name) if course_name else "UNKNOWN_COURSE"
+        manual_file_name = f"MANUAL_FIX_{safe_course_name}.txt"
+        
+        # We are already inside the course directory
+        manual_file_path = os.path.join(os.getcwd(), manual_file_name)
 
-        # Give an analysis of the found files and links
-        for i, link in enumerate(material_links):
-            if i < len(material_names):
-                name = material_names[i]
+        try:
+            # 1. Write the raw mismatch data to the file
+            with open(manual_file_path, "w", encoding="utf-8") as f:
+                f.write("[LINKS]\n")
+                for link in material_links:
+                    f.write(f"{link}\n")
+                f.write("\n[NAMES]\n")
+                for name in material_names:
+                    f.write(f"{name}\n")
+
+            # 2. Alert the user and wait
+            print(f"\n[ACTION REQUIRED]")
+            print(f"A file has been created: {manual_file_path}")
+            print("Please open this file, edit the lists so they match (same number of items), and SAVE IT.")
+            
+            # --- SCRIPT STOPS HERE AND WAITS FOR YOU ---
+            input(">>> Press Enter after you have SAVED the file to continue...")
+            # --- SCRIPT RESUMES ONLY AFTER YOU PRESS ENTER ---
+
+            # 3. Read the corrected file
+            print(f"\nReading {manual_file_path} for your manual edits...")
+            edited_links = []
+            edited_names = []
+            parsing_links = False
+            parsing_names = False
+
+            with open(manual_file_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    
+                    if line == "[LINKS]":
+                        parsing_links = True
+                        parsing_names = False
+                        continue
+                    elif line == "[NAMES]":
+                        parsing_links = False
+                        parsing_names = True
+                        continue
+                    elif line.startswith("["): # Stop if another section starts
+                        parsing_links = False
+                        parsing_names = False
+                        
+                    if parsing_links and line:
+                        edited_links.append(line)
+                    elif parsing_names and line:
+                        edited_names.append(line)
+
+            print(f"Found {len(edited_links)} links and {len(edited_names)} names in your file.")
+
+            # 4. Check for a match and download
+            if len(edited_links) == len(edited_names):
+                print(f"Lists match. Proceeding with download for {len(edited_links)} items...")
+                print("-" * 25)
+                for link, name in zip(edited_links, edited_names):
+                    if not name:
+                        print(f"Skipping download for link {link} as name is empty.")
+                        continue
+                    full_url = f"{BASE_URL}{link}"
+                    download_file(session, full_url, name, delay)
             else:
-                name = f"unnamed_{i + 1}"
-            print(f"Link: {BASE_URL}{link}, Name: {name}")
+                print("ERROR: The number of links and names in the file still do not match.")
+                print("Aborting download for this course. Please try again.")
+                
+            print(f"Manual naming file {manual_file_name} kept for your reference.")
 
-        print("-" * 25)
-
-        for i, link in enumerate(material_links):
-            full_url = f"{BASE_URL}{link}"
-            name = material_names[i] if i < len(material_names) else f"unnamed_{i + 1}"
-            download_file(session, full_url, name, delay)
-
+        except Exception as e:
+            print(f"An error occurred during manual name resolution: {e}")
+            print("Aborting download for this course.")
+        
     # Go back to parent dir
     os.chdir(original_directory)
-
 
 def sanitize_course_title(course_title: str) -> tuple[str, str]:
     parts = course_title.split()
