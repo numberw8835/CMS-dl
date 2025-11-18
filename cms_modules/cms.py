@@ -159,6 +159,81 @@ def download_course(
         # We are already inside the course directory
         manual_file_path = os.path.join(os.getcwd(), manual_file_name)
 
+        # Check if manual file already exists and has the same number of links
+        if os.path.exists(manual_file_path):
+            try:
+                # Read existing manual file to count links
+                existing_links_count = 0
+                parsing_links = False
+                
+                with open(manual_file_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line == "[LINKS]":
+                            parsing_links = True
+                            continue
+                        elif line == "[NAMES]":
+                            parsing_links = False
+                            continue
+                        elif line.startswith("["): # Stop if another section starts
+                            parsing_links = False
+                            continue
+                        if parsing_links and line:
+                            existing_links_count += 1
+                
+                # If the file already has the same number of links, skip manual intervention
+                if existing_links_count == len(material_links):
+                    print(f"Manual file {manual_file_name} already exists with matching link count. Skipping manual intervention.")
+                    # Read the file for names
+                    edited_links = []
+                    edited_names = []
+                    parsing_links = False
+                    parsing_names = False
+
+                    with open(manual_file_path, "r", encoding="utf-8") as f:
+                        for line in f:
+                            line = line.strip()
+                            
+                            if line == "[LINKS]":
+                                parsing_links = True
+                                parsing_names = False
+                                continue
+                            elif line == "[NAMES]":
+                                parsing_links = False
+                                parsing_names = True
+                                continue
+                            elif line.startswith("["): # Stop if another section starts
+                                parsing_links = False
+                                parsing_names = False
+                                
+                            if parsing_links and line:
+                                edited_links.append(line)
+                            elif parsing_names and line:
+                                edited_names.append(line)
+
+                    print(f"Found {len(edited_links)} links and {len(edited_names)} names in your file.")
+
+                    # Check for a match and download
+                    if len(edited_links) == len(edited_names):
+                        print(f"Lists match. Proceeding with download for {len(edited_links)} items...")
+                        print("-" * 25)
+                        for link, name in zip(edited_links, edited_names):
+                            if not name:
+                                print(f"Skipping download for link {link} as name is empty.")
+                                continue
+                            full_url = f"{BASE_URL}{link}"
+                            download_file(session, full_url, name, delay)
+                    else:
+                        print("ERROR: The number of links and names in the file still do not match.")
+                        print("Aborting download for this course. Please try again.")
+                    print(f"Manual naming file {manual_file_name} kept for your reference.")
+                    # Go back to parent dir
+                    os.chdir(original_directory)
+                    return
+            except Exception as e:
+                print(f"Error reading existing manual file: {e}")
+                # Continue with normal manual intervention
+
         try:
             # 1. Write the raw mismatch data to the file
             with open(manual_file_path, "w", encoding="utf-8") as f:
