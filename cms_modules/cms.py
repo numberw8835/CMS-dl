@@ -87,8 +87,9 @@ def get_material_names(page_content: str) -> list[str]:
     soup = BeautifulSoup(page_content, "html.parser")
     names = []
 
-    # Flexible pattern: any number of spaces, number, any number of spaces, dash, any number of spaces, letter
-    pattern = r"^\s*\d+\s*-\s*[a-zA-Z]"
+    # Flexible pattern: any number of spaces, number, any number of spaces, dash, any number of spaces, letter or number
+    pattern = r"^\s*\d+\s*-\s*[a-zA-Z0-9]"
+    
 
     for line in soup.get_text(separator="\n").splitlines():
         cleaned_line = line.strip()
