@@ -22,9 +22,15 @@ def main():
     )
     parser.add_argument(
         "-c",
-        "--course",
+        "--course-url",
         type=str,
         help="Specify the URL of the course page to download materials from",
+    )
+    parser.add_argument(
+        "--course-name",
+        type=str,
+        default="Untitled",
+        help="Specify the name of the course when using --course-url",
     )
     parser.add_argument(
         "-C",
@@ -72,7 +78,7 @@ def main():
 
     if (
         not args.sync
-        and not args.course
+        and not args.course_url
         and not args.get_courses
         and not args.course_id
     ):
@@ -103,10 +109,17 @@ def main():
         return
 
     save_credentials(username, password)
-
     try:
-        if args.course:
-            download_course(session, args.course, delay=args.delay, output=args.output)
+        if args.course_url:
+            clean_url = args.course_url.replace('\\', '') 
+            
+            print(f"\n📥 Downloading course from URL: {clean_url}...")
+            download_course(
+                session, 
+                course_url=clean_url, # Use the clean version
+                course_name=args.course_name,  
+                delay=args.delay, 
+                output=args.output)
         elif args.sync:
             courses = load_course_definitions()
             print(f"\n🔄 Syncing {len(courses)} courses...")
