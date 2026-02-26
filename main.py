@@ -2,11 +2,15 @@ import argparse
 import json
 import signal
 import sys
+import multiprocessing
+import warnings
 
 from cms_auth import authenticate
 from cms_config import load_course_definitions, load_credentials, save_credentials
 from cms_modules import download_course, get_course_list
 
+# Suppress the messy resource tracker warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="multiprocessing.resource_tracker")
 
 def handle_sigint(signum, frame):
     print("\n🛑 Exiting...")
@@ -73,9 +77,18 @@ def main():
         type=str,
         help="Specify a directory path to save the downloaded courses. If not provided, the courses will be saved in the current working directory",
     )
+    
+    args, unknown = parser.parse_known_args()
 
-    args = parser.parse_args()
+    # If the unknown args look like the multiprocessing tracker, don't proceed with the sub-process
+    if unknown and "multiprocessing" in "".join(unknown):
+        return
 
+    # Check for required flags only if we aren't a background process
+    if not (args.sync or args.course_url or args.get_courses or args.course_id):
+        parser.print_help()
+        return
+    
     if (
         not args.sync
         and not args.course_url
@@ -161,4 +174,5 @@ def main():
 
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
     main()
