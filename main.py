@@ -81,12 +81,19 @@ def main():
         type=str,
         help="Specify a directory path to save the downloaded courses. If not provided, the courses will be saved in the current working directory",
     )
+    
+    args, unknown = parser.parse_known_args()
 
     args, unknown = parser.parse_known_args()
 
     if args.course_url and "multiprocessing.resource_tracker" in args.course_url:
         sys.exit(0)
 
+    # Check for required flags only if we aren't a background process
+    if not (args.sync or args.course_url or args.get_courses or args.course_id):
+        parser.print_help()
+        return
+    
     if (
         not args.sync
         and not args.course_url
