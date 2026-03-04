@@ -3,10 +3,10 @@ import requests
 from requests.exceptions import HTTPError, RequestException
 from requests_ntlm import HttpNtlmAuth
 
-
 def authenticate(username: str, password: str):
     """Authenticate with GUC CMS and return a session object."""
     session = requests.Session()
+    session.verify = False
     session.auth = HttpNtlmAuth(f"GUC\\{username}", password)
     session.headers.update({"User-Agent": "Mozilla/5.0"})
 

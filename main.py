@@ -1,11 +1,19 @@
 import argparse
 import json
+import multiprocessing
 import signal
 import sys
+import warnings
+import urllib3
 
 from cms_auth import authenticate
 from cms_config import load_course_definitions, load_credentials, save_credentials
 from cms_modules import download_course, get_course_list
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# Suppress the messy resource tracker warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="multiprocessing.resource_tracker")
 
 
 def handle_sigint(signum, frame):
@@ -74,7 +82,10 @@ def main():
         help="Specify a directory path to save the downloaded courses. If not provided, the courses will be saved in the current working directory",
     )
 
-    args = parser.parse_args()
+    args, unknown = parser.parse_known_args()
+
+    if args.course_url and "multiprocessing.resource_tracker" in args.course_url:
+        sys.exit(0)
 
     if (
         not args.sync
@@ -161,4 +172,5 @@ def main():
 
 
 if __name__ == "__main__":
+    multiprocessing.set_start_method('spawn', force=True)
     main()
