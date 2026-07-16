@@ -71,7 +71,7 @@ def download_via_ytdlp(session: requests.Session, dacast_id: str, mp4_filename: 
     try:
         cmd = [
             "yt-dlp",
-            "-q",
+            "--no-warnings",
             "-o", mp4_filename,
             hls_url
         ]
