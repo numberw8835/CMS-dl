@@ -24,8 +24,72 @@ def sanitize_filename(name: str) -> str:
     return re.sub(r"\s+", " ", cleaned).strip()
 
 
+def download_via_ytdlp(session: requests.Session, dacast_id: str, mp4_filename: str, delay: int = 1) -> bool:
+    """Gets HLS stream for dacast_id and downloads it using yt-dlp."""
+    import subprocess
+    
+    # 1. Fetch iframe page
+    iframe_url = f"https://iframe.dacast.com/b/{dacast_id.replace('_', '/')}"
+    try:
+        iframe_response = session.get(iframe_url)
+        sleep(delay)
+        iframe_response.raise_for_status()
+        iframe_html = iframe_response.text
+    except Exception as e:
+        print(f"Failed to fetch Dacast iframe {iframe_url}: {e}")
+        return False
+        
+    # 2. Extract contentId
+    content_id_match = re.search(r'contentId=([a-f0-9]+-(?:vod|live)-[a-f0-9]+)', iframe_html)
+    if not content_id_match:
+        content_id_match = re.search(r'id=["\']([a-f0-9]+-(?:vod|live)-[a-f0-9]+)["\']', iframe_html)
+        
+    if not content_id_match:
+        print(f"Could not extract contentId from Dacast iframe HTML")
+        return False
+        
+    content_id = content_id_match.group(1)
+    
+    # 3. Fetch playback access JSON
+    access_url = f"https://playback.dacast.com/content/access?contentId={content_id}&provider=default"
+    try:
+        access_response = session.get(access_url)
+        sleep(delay)
+        access_response.raise_for_status()
+        access_data = access_response.json()
+    except Exception as e:
+        print(f"Failed to fetch playback access metadata for {content_id}: {e}")
+        return False
+        
+    hls_url = access_data.get("hls")
+    if not hls_url:
+        print(f"HLS URL not found in playback access response")
+        return False
+        
+    # 4. Run yt-dlp to download the HLS stream
+    print("Switching to yt-dlp...")
+    try:
+        cmd = [
+            "yt-dlp",
+            "-q",
+            "-o", mp4_filename,
+            hls_url
+        ]
+        subprocess.run(cmd, check=True)
+        print(f"Successfully downloaded video via yt-dlp to: {mp4_filename}")
+        return True
+    except Exception as e:
+        print(f"yt-dlp download failed: {e}")
+        if os.path.exists(mp4_filename):
+            try:
+                os.remove(mp4_filename)
+            except:
+                pass
+        return False
+
+
 def download_file(
-    session: requests.Session, file_url: str, save_filename: str, delay: int = 1
+    session: requests.Session, file_url: str, save_filename: str, delay: int = 1, vod_mapping: dict = None
 ):
     """Downloads a file and saves it, checking if it already exists."""
     # Generate full file name with extension
@@ -35,17 +99,71 @@ def download_file(
     sanitized_filename = sanitize_filename(save_filename)
     full_filename = sanitized_filename + file_extension
 
+    # Determine the video/audio fallback file extension dynamically
+    media_extensions = {".mp4", ".mp3", ".wav", ".m4a", ".aac", ".ts", ".mkv", ".avi", ".mov"}
+    fallback_extension = file_extension if file_extension.lower() in media_extensions else ".mp4"
+    video_filename = sanitized_filename + fallback_extension
+
     # Check if file already exists
     if os.path.exists(full_filename):
         print(f"File {full_filename} already exists, skipping download.")
         return
 
+    if os.path.exists(video_filename):
+        print(f"Video/Audio {video_filename} already exists, skipping download.")
+        return
+
+    # Check if this is a video stream that we should download using yt-dlp fallback
+    from urllib.parse import urlparse
+    parsed = urlparse(file_url)
+    cleaned_path = parsed.path.replace('\\', '/').strip()
+    
+    dacast_id = None
+    if vod_mapping:
+        if cleaned_path in vod_mapping:
+            dacast_id = vod_mapping[cleaned_path]
+
+    # Try standard download
     try:
         response = session.get(file_url, stream=True)
         sleep(delay)  # Add delay to prevent server stress
         response.raise_for_status()
+
+        # Check if the content is HTML (meaning it's probably the player page)
+        content_type = response.headers.get("content-type", "").lower()
+        if "text/html" in content_type:
+            if not dacast_id:
+                html_content = response.content.decode('utf-8', errors='ignore')
+                id_match = re.search(r'id=["\'](\d+_f_\d+)["\']', html_content)
+                if id_match:
+                    dacast_id = id_match.group(1)
+            
+            if dacast_id:
+                success = download_via_ytdlp(session, dacast_id, video_filename, delay)
+                if success:
+                    return
+            
+            print(f"Could not download {file_url} as video stream.")
+            return
+
     except Exception as e:
-        print(f"Failed to download {file_url}: {str(e)}")
+        print(f"Standard download failed for {file_url}: {str(e)}")
+        if not dacast_id:
+            try:
+                html_response = session.get(file_url)
+                sleep(delay)
+                html_response.raise_for_status()
+                html_content = html_response.text
+                id_match = re.search(r'id=["\'](\d+_f_\d+)["\']', html_content)
+                if id_match:
+                    dacast_id = id_match.group(1)
+            except:
+                pass
+        
+        if dacast_id:
+            success = download_via_ytdlp(session, dacast_id, video_filename, delay)
+            if success:
+                return
         return
 
     # Get the total file size
@@ -117,6 +235,19 @@ def download_course(
     response.raise_for_status()
     page_html = response.text
 
+    # Parse vodbutton mappings to support HLS stream fallback via dacast IDs
+    vod_mapping = {}
+    try:
+        soup = BeautifulSoup(page_html, "html.parser")
+        for btn in soup.find_all(class_=lambda x: x and 'vodbutton' in x):
+            url = btn.get('data-url')
+            btn_id = btn.get('id')
+            if url and btn_id:
+                cleaned_url = url.replace('\\', '/').strip()
+                vod_mapping[cleaned_url] = btn_id.strip()
+    except Exception as e:
+        print(f"Warning: Could not parse vodbutton mappings: {e}")
+
     # Extract the names and links
     material_links = get_material_links(page_html)
     material_names = get_material_names(page_html)
@@ -147,7 +278,7 @@ def download_course(
         print(f"Found {len(material_links)} matching links and names.")
         for link, name in zip(material_links, material_names):
             full_url = f"{BASE_URL}{link}"
-            download_file(session, full_url, name, delay)
+            download_file(session, full_url, name, delay, vod_mapping=vod_mapping)
     else:
         # --- NEW MANUAL MISMATCH RESOLUTION ---
         print(
@@ -223,7 +354,7 @@ def download_course(
                                 print(f"Skipping download for link {link} as name is empty.")
                                 continue
                             full_url = f"{BASE_URL}{link}"
-                            download_file(session, full_url, name, delay)
+                            download_file(session, full_url, name, delay, vod_mapping=vod_mapping)
                     else:
                         print("ERROR: The number of links and names in the file still do not match.")
                         print("Aborting download for this course. Please try again.")
@@ -293,7 +424,7 @@ def download_course(
                         print(f"Skipping download for link {link} as name is empty.")
                         continue
                     full_url = f"{BASE_URL}{link}"
-                    download_file(session, full_url, name, delay)
+                    download_file(session, full_url, name, delay, vod_mapping=vod_mapping)
             else:
                 print("ERROR: The number of links and names in the file still do not match.")
                 print("Aborting download for this course. Please try again.")
