@@ -84,9 +84,7 @@ def main():
     
     args, unknown = parser.parse_known_args()
 
-    args, unknown = parser.parse_known_args()
-
-    if args.course_url and "multiprocessing.resource_tracker" in args.course_url:
+    if unknown and any("multiprocessing" in str(arg) for arg in unknown):
         sys.exit(0)
 
     # Check for required flags only if we aren't a background process
@@ -179,5 +177,5 @@ def main():
 
 
 if __name__ == "__main__":
-    multiprocessing.set_start_method('spawn', force=True)
+    multiprocessing.freeze_support()
     main()

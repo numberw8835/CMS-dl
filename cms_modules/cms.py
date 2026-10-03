@@ -2,6 +2,7 @@ from asyncio import SelectorEventLoop
 from pickle import TUPLE
 import re
 import os
+import sys
 from time import sleep
 from bs4 import BeautifulSoup
 import requests
@@ -75,7 +76,30 @@ def download_via_ytdlp(session: requests.Session, dacast_id: str, mp4_filename: 
             "-o", mp4_filename,
             hls_url
         ]
-        subprocess.run(cmd, check=True)
+        # Clean environment variables in case running within a PyInstaller bundle,
+        # which sets LD_LIBRARY_PATH and corrupts the system Python runtime.
+        clean_env = os.environ.copy()
+        if "LD_LIBRARY_PATH_ORIG" in clean_env:
+            clean_env["LD_LIBRARY_PATH"] = clean_env["LD_LIBRARY_PATH_ORIG"]
+        else:
+            clean_env.pop("LD_LIBRARY_PATH", None)
+
+        meipass = getattr(sys, "_MEIPASS", None)
+        if meipass and "LD_LIBRARY_PATH" in clean_env:
+            paths = [
+                p
+                for p in clean_env["LD_LIBRARY_PATH"].split(os.pathsep)
+                if p and not p.startswith(meipass)
+            ]
+            if paths:
+                clean_env["LD_LIBRARY_PATH"] = os.pathsep.join(paths)
+            else:
+                clean_env.pop("LD_LIBRARY_PATH", None)
+
+        clean_env.pop("PYTHONPATH", None)
+        clean_env.pop("PYTHONHOME", None)
+
+        subprocess.run(cmd, env=clean_env, check=True)
         print(f"Successfully downloaded video via yt-dlp to: {mp4_filename}")
         return True
     except Exception as e:
