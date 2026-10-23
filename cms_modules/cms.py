@@ -32,7 +32,24 @@ class DownloadCancelled(Exception):
 
 
 def ask_in_terminal(manual_file_path: str) -> bool:
-    """Default manual-fix prompt: waits until the user has edited the file and pressed Enter."""
+    """Default manual-fix prompt: an editor in the terminal (see fix_tui), or editing the file by hand."""
+    if all(stream is not None and stream.isatty() for stream in (sys.stdin, sys.stdout)):
+        try:
+            from .fix_tui import fix_in_terminal
+        except ImportError:  # no curses, e.g. Windows without the windows-curses package
+            fix_in_terminal = None
+        if fix_in_terminal is not None:
+            links, names, ignored = read_manual_fix_file(manual_file_path)
+            try:
+                fixed = fix_in_terminal(links, names, os.path.basename(os.path.dirname(manual_file_path)))
+            except Exception as e:  # e.g. a terminal curses can't drive
+                print(f"The editor couldn't start ({e}), so edit the file instead.")
+            else:
+                if fixed is None:
+                    return False
+                write_manual_fix_file(manual_file_path, fixed[0], fixed[1], ignored)
+                return True
+
     print("\n[ACTION REQUIRED]")
     print(f"A file has been created: {manual_file_path}")
     print("Please open this file, edit the lists so they match (same number of items), and SAVE IT.")

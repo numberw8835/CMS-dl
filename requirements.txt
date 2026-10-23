@@ -5,3 +5,4 @@ beautifulsoup4
 tqdm
 customtkinter
 yt-dlp
+windows-curses; sys_platform == "win32"

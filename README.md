@@ -119,7 +119,21 @@ Each course gets a folder named after it, inside your download folder: the one y
 Teachers sometimes write material titles in unusual ways, so a course page can show a different number of links and names. When that happens:
 
 - **In the app**, a window opens with the links and names side by side. Line them up (line N on the left belongs to line N on the right) and press **Save & Continue**.
-- **On the command line**, a `MANUAL_FIX_<course>.txt` file is created in the course folder. Edit the `[LINKS]` and `[NAMES]` lists so they have the same length, save, and press Enter. If you press Enter without fixing it, those materials are skipped for now.
+- **On the command line**, an editor opens in the terminal: links on the left, names on the right, every row numbered and both counts at the top. `>` marks the first item of each week on both sides, and rows where only one side starts a week are red, which is usually where a name is missing or extra. Keys:
+
+  | Key | Does |
+  |---|---|
+  | Up/Down, PgUp/PgDn | move |
+  | Tab | switch between the links and the names |
+  | `d` | delete the line (a deleted link is skipped from now on) |
+  | `a` / `A` | add a name below / above |
+  | Enter | edit the name |
+  | `K` / `J` | move the line up / down |
+  | `u` | undo |
+  | `s` | save, once both lists are the same length |
+  | `q` | skip these materials for now |
+
+  Without an interactive terminal (e.g. in a script), edit the `MANUAL_FIX_<course>.txt` file it creates in the course folder instead, so the `[LINKS]` and `[NAMES]` lists have the same length, then press Enter.
 
 Your fix is remembered: later, only new uploads that don't line up need fixing. Links you delete are skipped from then on; they are listed under `[IGNORED]` in that file, and deleting them there brings them back.
 
