@@ -1,0 +1,111 @@
+# Builds the Windows installer and the Linux AppImage with Nuitka (see build.py).
+# Pull requests get them as downloadable artifacts; pushing a tag like v2.0.0 also creates a draft release.
+name: Build
+
+on:
+  pull_request:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    name: Windows installer
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - name: Keep Nuitka's compile cache between builds
+        uses: actions/cache@v6
+        with:
+          path: ~\AppData\Local\Nuitka\Nuitka\Cache
+          key: nuitka-windows-${{ hashFiles('requirements.txt') }}-${{ github.sha }}
+          restore-keys: nuitka-windows-
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt nuitka
+          choco install innosetup --no-progress -y
+      - name: Build
+        run: python build.py
+      - name: Check the programs start
+        shell: pwsh
+        run: |
+          & "dist\CMS-Downloader\cms-dl.exe" --version
+          if ($LASTEXITCODE -ne 0) { throw "cms-dl.exe failed" }
+          $app = Start-Process -FilePath "dist\CMS-Downloader\CMS Downloader.exe" -PassThru
+          Start-Sleep -Seconds 15
+          if ($app.HasExited) {
+            Get-Content "$env:TEMP\CMS-Downloader-errors.txt" -ErrorAction SilentlyContinue
+            throw "CMS Downloader.exe quit right away (exit code $($app.ExitCode))"
+          }
+          Stop-Process -Id $app.Id
+      - uses: actions/upload-artifact@v7
+        with:
+          name: windows-installer
+          path: dist/CMS-Downloader-Setup-*.exe
+          if-no-files-found: error
+
+  linux:
+    name: Linux AppImage
+    # The oldest supported Ubuntu, so the AppImage runs on most distributions (glibc 2.35 and newer)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - name: Keep Nuitka's compile cache between builds
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/Nuitka
+          key: nuitka-linux-${{ hashFiles('requirements.txt') }}-${{ github.sha }}
+          restore-keys: nuitka-linux-
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y patchelf ccache tk8.6 xvfb
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt nuitka
+      - name: Build
+        run: python build.py
+      - name: Check the program starts
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: "1"  # no FUSE on the runner
+        run: |
+          appimage=$(ls dist/CMS-Downloader-*-x86_64.AppImage)
+          "$appimage" --version
+          status=0
+          timeout 15 xvfb-run -a "$appimage" || status=$?
+          if [ "$status" -ne 124 ]; then echo "The app quit right away (exit code $status)"; exit 1; fi
+      - uses: actions/upload-artifact@v7
+        with:
+          name: linux-appimage
+          path: dist/CMS-Downloader-*-x86_64.AppImage
+          if-no-files-found: error
+
+  release:
+    name: Draft release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [windows, linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: assets
+          merge-multiple: true
+      - name: Create a draft release with the downloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" assets/* --repo "$GITHUB_REPOSITORY" --draft \
+            --title "GUC CMS Downloader ${GITHUB_REF_NAME#v}" --generate-notes
