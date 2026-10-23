@@ -61,6 +61,9 @@ def nuitka(script, *options):
             "--standalone",
             "--assume-yes-for-downloads",
             "--lto=no",  # link-time optimization makes the build much slower for little gain here
+            # yt-dlp's optional, generated extractor index: compiling it takes longer than everything else
+            # together, and yt-dlp falls back to its regular extractor list without it
+            "--nofollow-import-to=yt_dlp.extractor.lazy_extractors",
             f"--output-dir={BUILD_DIR}",
             *options,
             os.path.join(ROOT, script),
