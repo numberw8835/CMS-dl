@@ -1,10 +1,10 @@
 # 📚 GUC CMS Downloader
 
-🚀 **Easily download course materials** from the German University in Cairo's CMS, on Windows, Linux or macOS, with a simple app or from the command line.
+🚀 **Easily download course materials** from the German University in Cairo's CMS, on Windows and Linux, with a simple app or from the command line.
 
 ## ⬇️ Download
 
-Get the latest version from the [Releases page](https://github.com/numberw8835/CMS-dl/releases/latest), no Python needed.
+Get the latest version from the [Releases page](https://github.com/numberw8835/CMS-dl/releases/latest). You don't need Python for these.
 
 ### 🪟 Windows
 
@@ -13,69 +13,31 @@ Get the latest version from the [Releases page](https://github.com/numberw8835/C
 
 Windows doesn't know unsigned programs like this one, so it may say "Windows protected your PC": click **More info → Run anyway**.
 
-Want the command line too? Tick **Add the cms-dl command to PATH** during setup, then `cms-dl --sync` works in any terminal.
+The installer also includes the command line, `cms-dl.exe`. Tick **Add the cms-dl command to PATH** during setup, open a new terminal, and `cms-dl --sync` works from anywhere.
 
 ### 🐧 Linux
 
-Download `CMS-Downloader-<version>-x86_64.AppImage` and make it executable:
+There are two downloads:
 
-```bash
-chmod +x CMS-Downloader-*-x86_64.AppImage
-```
-
-Started without arguments (or double-clicked) it opens the app; with arguments it's the command line:
-
-```bash
-./CMS-Downloader-2.0.0-x86_64.AppImage --sync
-```
-
-### ⌨️ Linux command line only
-
-`cms-dl-linux-x86_64` is just the command line, in a single file. Put it in `~/.local/bin`:
-
-```bash
-curl -L -o ~/.local/bin/cms-dl https://github.com/numberw8835/CMS-dl/releases/latest/download/cms-dl-linux-x86_64
-chmod +x ~/.local/bin/cms-dl
-cms-dl --sync
-```
-
-Run the same two lines again to update.
-
-## ⚙️ Running from source
-
-You can also run it with Python, on any system.
-
-### Prerequisites
-
-- Python 3.10 or newer ([python.org](https://www.python.org/downloads/)). On Linux you may also need Tk for the app, e.g. `sudo apt install python3-tk`
-- The required packages:
+- **`cms-dl-linux-x86_64`**: just the command line, in a single file. Put it in `~/.local/bin`:
 
   ```bash
-  pip install -r requirements.txt
+  curl -L -o ~/.local/bin/cms-dl https://github.com/numberw8835/CMS-dl/releases/latest/download/cms-dl-linux-x86_64
+  chmod +x ~/.local/bin/cms-dl
+  cms-dl --version
   ```
 
-  On Windows use `py -m pip install -r requirements.txt`.
-- A GUC account with access to the courses you want to download
-- Optional: [ffmpeg](https://ffmpeg.org/download.html) for lecture videos. Without it videos are saved as `.ts` files, which VLC and the Windows media player open fine.
+  Run the same lines again to update. The first start unpacks it into `~/.cache/cms-dl/<version>`, so later starts are quick.
 
-### 🖥️ The app
-
-```bash
-python gui.py
-```
-
-(On Windows: `py gui.py`.)
-
-1. The first time, sign in with your GUC account and pick where to save your courses.
-2. **Download Courses** lists every course you've taken. A course you took more than once shows up once. Filter by semester or search, tick what you want and press **Download**. You can follow along in the log and press **Stop** at any time.
-3. **Save as Sync List** remembers your ticked courses, so **Sync All Courses** on the home page updates all of them in one click.
-4. **Settings** has your account, download folder, the delay between requests, semester folders and the theme.
+- **`CMS-Downloader-<version>-x86_64.AppImage`**: the app and the command line. Make it executable with `chmod +x`, then double-click it (or start it without arguments) for the app; with arguments it's the command line, e.g. `./CMS-Downloader-2.0.0-x86_64.AppImage --sync`. AppImages need FUSE; without it, add `--appimage-extract-and-run`.
 
 ## ⌨️ Command line
 
+The examples use `cms-dl`. Running from source it's `python main.py` instead (`py main.py` on Windows), and with the AppImage `./CMS-Downloader-<version>-x86_64.AppImage`. `cms-dl --help` lists every option.
+
 ### 🔑 First-time setup
 
-Run any command with `-u your_username -p your_password` once; your credentials are then saved in `.guc_account.json` in your home folder (`C:\Users\<you>\.guc_account.json` on Windows). You can also create that file yourself:
+Run any command with `-u your_username -p your_password` once. After signing in, your credentials are saved in `.guc_account.json` in your home folder (`C:\Users\<you>\.guc_account.json` on Windows), so you can leave them out from then on. The app uses the same file. You can also create it yourself:
 
 ```json
 {
@@ -87,47 +49,55 @@ Run any command with `-u your_username -p your_password` once; your credentials 
 ### 🔍 Getting available courses
 
 ```bash
-python main.py --get-courses
+cms-dl --get-courses
 ```
 
-This creates/updates `courses.json` with every course you've taken. Edit it down to the courses you want to keep in sync. Repeated courses show up once per time you took them; they are merged when downloading.
+This saves `courses.json` in the current folder, listing every course you've taken (it replaces an existing `courses.json` there). Edit it down to the courses you want to keep in sync. A course you took more than once appears once per time you took it; those are merged when downloading.
 
 > Note: This doesn't download anything yet, it only saves an **Index** of the courses.
 
 ### 📥 Syncing your courses
 
 ```bash
-python main.py --sync
+cms-dl --sync
 ```
 
-Downloads every course in `courses.json`, each in its own folder. Only new files are downloaded, so run it as often as you like.
+Downloads every course in the `courses.json` of the current folder, each in its own folder. Only new files are downloaded, so run it as often as you like. It also checks the course list on the CMS so the folder names stay the same as the app's; a name you changed in `courses.json` is kept.
 
 ### 🚀 Downloading a course directly
 
 By course ID 🌟 (every time you took the course is merged into one folder):
 
 ```bash
-python main.py -C CSEN901
+cms-dl -C CSEN901
 ```
 
-Or by the URL of the course page:
+Or by the URL of the course page (saved in a folder called `Untitled` unless you give a name):
 
 ```bash
-python main.py -c "course_url" --course-name "Some Course"
+cms-dl -c "course_url" --course-name "Some Course"
 ```
 
 ### Other options
 
 - `-o FOLDER` saves the courses in FOLDER instead of the current folder
-- `-d SECONDS` sets the delay between requests (default 1)
+- `-d SECONDS` sets the delay between downloads (default 1, see below)
 - `--by-semester` puts the courses in semester folders (see below)
+- `--version` shows the version
+
+## 🖥️ The app
+
+1. The first time, sign in with your GUC account and choose where to save your courses.
+2. **Download Courses** lists every course you've taken; a course you took more than once shows up once. Filter by semester or search, tick what you want and press **Download**. You can follow along in the log and press **Stop** at any time.
+3. **Save as Sync List** remembers your ticked courses in `courses.json`, so **Sync All Courses** on the home page updates all of them in one click.
+4. **Settings** has your account, download folder, the delay between downloads, semester folders and the theme.
 
 ## 📂 How your downloads are organized
 
-Each course gets a folder named after it, right in your download folder:
+Each course gets a folder named after it, inside your download folder: the one you chose in the app, or for the command line the current folder (or `-o`).
 
 ```
-CMS_Courses/
+<download folder>/
 ├── Microprocessors/              taken twice (Winter 2024 and Summer 2026): one folder
 │   ├── 1 - Lecture 1.pdf
 │   ├── 4 - Lecture 3.pdf
@@ -149,9 +119,19 @@ CMS_Courses/
 Teachers sometimes write material titles in unusual ways, so a course page can show a different number of links and names. When that happens:
 
 - **In the app**, a window opens with the links and names side by side. Line them up (line N on the left belongs to line N on the right) and press **Save & Continue**.
-- **On the command line**, a `MANUAL_FIX_<course>.txt` file is created in the course folder. Edit the `[LINKS]` and `[NAMES]` lists so they have the same length, save, and press Enter.
+- **On the command line**, a `MANUAL_FIX_<course>.txt` file is created in the course folder. Edit the `[LINKS]` and `[NAMES]` lists so they have the same length, save, and press Enter. If you press Enter without fixing it, those materials are skipped for now.
 
 Your fix is remembered: later, only new uploads that don't line up need fixing. Links you delete are skipped from then on; they are listed under `[IGNORED]` in that file, and deleting them there brings them back.
+
+## 🎬 Lecture videos
+
+Videos are downloaded with yt-dlp, which is built in. With [ffmpeg](https://ffmpeg.org/download.html) installed they're saved as `.mp4`; without it as `.ts`, which VLC and the Windows media player play fine.
+
+## ⚙️ Running from source
+
+1. Install Python 3.10 or newer ([python.org](https://www.python.org/downloads/)). On Linux the app also needs Tk, e.g. `sudo apt install python3-tk`.
+2. Install the required packages: `pip install -r requirements.txt` (on Windows `py -m pip install -r requirements.txt`).
+3. Start the app with `python gui.py`, or use the command line with `python main.py` (see Command line above).
 
 ## 📦 Building the downloads
 
@@ -160,27 +140,29 @@ pip install -r requirements.txt nuitka
 python build.py
 ```
 
-[Nuitka](https://nuitka.net) compiles the program, so it runs without Python installed. It builds for the system it runs on:
+[Nuitka](https://nuitka.net) compiles the program so it runs without Python. It builds for the system it runs on:
 
-- **Windows**: `dist/CMS-Downloader/` with `CMS Downloader.exe` (the app) and `cms-dl.exe` (the command line). Nuitka uses Visual Studio's C compiler or, without it, `pip install ziglang`. With [Inno Setup](https://jrsoftware.org/isdl.php) installed you also get the installer `dist/CMS-Downloader-Setup-<version>.exe` (from `installer.iss`).
-- **Linux**: `dist/CMS-Downloader-<version>-x86_64.AppImage` and the single-file command line `dist/cms-dl-linux-x86_64`. Needs gcc and patchelf (`pip install zstandard` to compress the single file); appimagetool is downloaded automatically.
+- **Windows**: `dist/CMS-Downloader/` with `CMS Downloader.exe` (the app) and `cms-dl.exe` (the command line). Nuitka needs a C compiler: Visual Studio's (Build Tools) or `pip install ziglang`. With [Inno Setup](https://jrsoftware.org/isdl.php) installed you also get the installer `dist/CMS-Downloader-Setup-<version>.exe` (made from `installer.iss`).
+- **Linux**: `dist/cms-dl-linux-x86_64` (single-file command line) and `dist/CMS-Downloader-<version>-x86_64.AppImage`. Needs gcc and patchelf; appimagetool is downloaded automatically. Packing the single file needs zstd compression with threads: on Python 3.13 or older run `pip install zstandard`; some Python 3.14 builds lack threaded zstd, which is why the release builds use 3.13 on Linux.
 
-The first build takes a while (yt-dlp alone is over a thousand modules); later ones reuse Nuitka's cache.
+The first build takes a while (yt-dlp alone is over a thousand modules).
 
-**Releasing**: bump the version in `cms_modules/version.py`, then push a tag like `v2.0.1`. GitHub builds the Windows installer and the AppImage (`.github/workflows/release.yml`) and creates a draft release with both, ready to publish. Pull requests get the same builds as downloadable artifacts.
+**Releasing**: bump the version in `cms_modules/version.py`, commit, then push a tag like `v2.0.1`. GitHub builds the Windows installer, the AppImage and the Linux `cms-dl` on its own machines (`.github/workflows/release.yml`; free for public repositories) and creates a draft release with all three. Check it, then publish it on GitHub.
 
 ## 🗂️ Where things are stored
 
 - `~/.guc_account.json`: your username and password, in plain text, so keep it private
 - `~/.guc_cms_settings.json`: the app's settings
-- `courses.json`: your sync list, in the current folder or next to the app/`.exe`
+- `courses.json`: your sync list. The command line uses the one in the current folder; the app looks in the folder it was started from, then its program folder (on Windows, where it's installed)
+- `~/.cache/cms-dl/<version>`: where the Linux `cms-dl` unpacks itself; old versions can be deleted
+- `%TEMP%\CMS-Downloader-errors.txt` (Windows app): error details if the app ever fails to start
 
 ## ⏳ Specifying delay between downloads
 
-To specify the delay (in seconds) between downloading each file, use the `-d` flag:
+To specify the delay (in seconds) between downloads, use the `-d` flag:
 
 ```bash
-python main.py --sync -d 5
+cms-dl --sync -d 5
 ```
 
 > Note: Please have mercy on the poor servers of the CMS; they can't handle all the traffic. Make sure to use this with caution (i.e., make the delay longer than 1 or 3, do at least 5).
