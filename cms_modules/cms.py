@@ -385,8 +385,9 @@ def get_material_names(page_content: str) -> list[str]:
     soup = BeautifulSoup(page_content, "html.parser")
     names = []
 
-    # Flexible pattern: any number of spaces, number, any number of spaces, dash, any number of spaces, letter or number
-    pattern = r"^\s*\d+\s*-\s*[a-zA-Z0-9]"
+    # Flexible pattern: any number of spaces, number, any number of spaces, dash, any number of spaces, then the
+    # title, which can start with anything (e.g. "1 - [Dr. Someone] Thesis Topics")
+    pattern = r"^\s*\d+\s*-\s*\S"
 
 
     for line in soup.get_text(separator="\n").splitlines():
