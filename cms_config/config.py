@@ -6,6 +6,7 @@ import sys
 CREDENTIALS_PATH = os.path.expanduser("~/.guc_account.json")
 SETTINGS_PATH = os.path.expanduser("~/.guc_cms_settings.json")  # GUI preferences
 COURSES_FILE = "courses.json"
+HOME_COURSES_PATH = os.path.expanduser("~/.guc_cms_courses.json")  # the sync list when the program folder can't hold it
 
 
 def app_dir() -> str:
@@ -16,9 +17,15 @@ def app_dir() -> str:
 
 
 def courses_file_path() -> str:
-    """courses.json in the current directory if it exists there, otherwise next to the app."""
+    """courses.json in the current directory if it exists there, otherwise next to the app.
+
+    An AppImage's program folder is read-only (or a temporary copy), so there the sync list lives
+    in the home folder instead, next to the other settings.
+    """
     if os.path.exists(COURSES_FILE):
         return os.path.abspath(COURSES_FILE)
+    if os.environ.get("APPIMAGE") or not os.access(app_dir(), os.W_OK):
+        return HOME_COURSES_PATH
     return os.path.join(app_dir(), COURSES_FILE)
 
 

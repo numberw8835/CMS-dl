@@ -153,7 +153,7 @@ The first build takes a while (yt-dlp alone is over a thousand modules).
 
 - `~/.guc_account.json`: your username and password, in plain text, so keep it private
 - `~/.guc_cms_settings.json`: the app's settings
-- `courses.json`: your sync list. The command line uses the one in the current folder; the app looks in the folder it was started from, then its program folder (on Windows, where it's installed)
+- `courses.json`: your sync list. The command line uses the one in the current folder; the app looks in the folder it was started from, then its program folder (on Windows, where it's installed). The Linux AppImage can't write inside itself, so it keeps the list in `~/.guc_cms_courses.json`
 - `~/.cache/cms-dl/<version>`: where the Linux `cms-dl` unpacks itself; old versions can be deleted
 - `%TEMP%\CMS-Downloader-errors.txt` (Windows app): error details if the app ever fails to start
 
