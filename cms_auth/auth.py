@@ -1,11 +1,26 @@
 # auth.py
 import requests
+import urllib3
 from requests.exceptions import HTTPError, RequestException
 from requests_ntlm import HttpNtlmAuth
 
+# The CMS certificate chain doesn't verify, so verification is off below; silence the per-request warning
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+REQUEST_TIMEOUT = 60  # seconds, for connecting and for each read
+
+
+class CMSSession(requests.Session):
+    """A requests session that never waits forever on a stalled connection."""
+
+    def request(self, *args, **kwargs):
+        kwargs.setdefault("timeout", REQUEST_TIMEOUT)
+        return super().request(*args, **kwargs)
+
+
 def authenticate(username: str, password: str):
     """Authenticate with GUC CMS and return a session object."""
-    session = requests.Session()
+    session = CMSSession()
     session.verify = False
     session.auth = HttpNtlmAuth(f"GUC\\{username}", password)
     session.headers.update({"User-Agent": "Mozilla/5.0"})

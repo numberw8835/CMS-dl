@@ -1,19 +1,41 @@
 import argparse
-import json
 import multiprocessing
+import os
 import signal
 import sys
 import warnings
-import urllib3
+from collections import Counter
 
 from cms_auth import authenticate
-from cms_config import load_course_definitions, load_credentials, save_credentials
-from cms_modules import download_course, get_course_list
-
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+from cms_config import (
+    courses_file_path,
+    load_course_definitions,
+    load_credentials,
+    save_course_definitions,
+    save_credentials,
+)
+from cms_modules import (
+    __version__,
+    describe_stats,
+    download_course,
+    download_course_group,
+    get_course_list,
+    group_courses,
+    refresh_course_definitions,
+)
 
 # Suppress the messy resource tracker warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="multiprocessing.resource_tracker")
+
+
+def use_utf8_output():
+    """The emoji in messages crash Windows terminals that use a legacy code page (Git Bash, redirected output)."""
+    for stream in (sys.stdout, sys.stderr):
+        if stream is not None and hasattr(stream, "reconfigure"):
+            try:
+                stream.reconfigure(encoding="utf-8", errors="replace")
+            except (OSError, ValueError):
+                pass
 
 
 def handle_sigint(signum, frame):
@@ -23,7 +45,27 @@ def handle_sigint(signum, frame):
     sys.exit(0)
 
 
+def download_groups(session, groups, args) -> Counter:
+    """Downloads each course, with repeated takes merged into one folder; one failure doesn't stop the rest."""
+    totals = Counter()
+    for group in groups:
+        takes = len(group["takes"])
+        print(f"⚙️ Syncing {group['name']}..." + (f" (taken {takes} times, merged)" if takes > 1 else ""))
+        try:
+            stats = download_course_group(
+                session, group, delay=args.delay, output=args.output, by_semester=args.by_semester
+            )
+        except Exception as e:
+            print(f"❌ Failed to sync {group['name']}: {e}")
+            totals["failed_courses"] += 1
+            continue
+        print(f"   {describe_stats(stats)}")
+        totals.update(stats)
+    return totals
+
+
 def main():
+    use_utf8_output()
     signal.signal(signal.SIGINT, handle_sigint)
     parser = argparse.ArgumentParser(
         description="A tool to download course materials from GUC CMS 📚"
@@ -44,7 +86,7 @@ def main():
         "-C",
         "--course-id",
         type=str,
-        help="Alternatively, provide a course ID instead of the URL",
+        help="Alternatively, provide a course ID instead of the URL (every time you took it is merged into one folder)",
     )
     parser.add_argument(
         "--sync",
@@ -81,7 +123,13 @@ def main():
         type=str,
         help="Specify a directory path to save the downloaded courses. If not provided, the courses will be saved in the current working directory",
     )
-    
+    parser.add_argument("--version", action="version", version=f"cms-dl {__version__}")
+    parser.add_argument(
+        "--by-semester",
+        action="store_true",
+        help="Put courses in semester folders (Semester 1, Semester 2 - Summer, ...); existing course folders are moved, not downloaded again",
+    )
+
     args, unknown = parser.parse_known_args()
 
     if unknown and any("multiprocessing" in str(arg) for arg in unknown):
@@ -91,16 +139,10 @@ def main():
     if not (args.sync or args.course_url or args.get_courses or args.course_id):
         parser.print_help()
         return
-    
-    if (
-        not args.sync
-        and not args.course_url
-        and not args.get_courses
-        and not args.course_id
-    ):
-        parser.error(
-            "Either --course or --course-id or --sync is required, or even --get-courses 📝"
-        )
+
+    if args.output and not os.path.isdir(args.output):
+        print(f"\n❌ Output directory {args.output} does not exist.")
+        return
 
     username = args.username
     password = args.password
@@ -127,48 +169,45 @@ def main():
     save_credentials(username, password)
     try:
         if args.course_url:
-            clean_url = args.course_url.replace('\\', '') 
-            
+            clean_url = args.course_url.replace('\\', '')
+
             print(f"\n📥 Downloading course from URL: {clean_url}...")
-            download_course(
-                session, 
+            stats = download_course(
+                session,
                 course_url=clean_url, # Use the clean version
-                course_name=args.course_name,  
-                delay=args.delay, 
+                course_name=args.course_name,
+                delay=args.delay,
                 output=args.output)
+            print(f"\n✅ Done: {describe_stats(stats)}")
         elif args.sync:
             courses = load_course_definitions()
-            print(f"\n🔄 Syncing {len(courses)} courses...")
-            for course in courses:
-                print(f"⚙️ Syncing {course['name']}...")
-                download_course(
-                    session,
-                    course["url"],
-                    course["name"],
-                    delay=args.delay,
-                    output=args.output,
-                )
+            if not courses:
+                print(f"\n❌ No courses to sync. Run --get-courses or create {courses_file_path()}")
+                return
+            # Pick up folder numbering and seasons from the CMS; a name edited in courses.json wins
+            try:
+                courses = refresh_course_definitions(courses, get_course_list(session, verbose=False))
+            except Exception as e:
+                print(f"⚠️ Could not refresh the course list ({e}), using courses.json as it is")
+            groups = group_courses(courses)
+            print(f"\n🔄 Syncing {len(groups)} courses...")
+            totals = download_groups(session, groups, args)
+            print(f"\n✅ Done: {describe_stats(totals)}")
         elif args.get_courses:
             print("\n🌐 Fetching all available courses from CMS...")
             courses = get_course_list(session)
-            with open("courses.json", "w") as f:
-                json.dump(courses, f, indent=2)
-            print(f"\n✅ Saved {len(courses)} courses to courses.json")
+            save_course_definitions(courses, "courses.json")
+            merged = len(group_courses(courses))
+            print(f"\n✅ Saved {len(courses)} courses to courses.json ({merged} after merging repeated courses)")
         elif args.course_id:
-            courses = get_course_list(session)
-            for course in courses:
-                if str(course["id"]).upper() == args.course_id.upper():
-                    print(f"Downloading course with ID: {args.course_id}...")
-                    download_course(
-                        session,
-                        course["url"],
-                        course["name"],
-                        delay=args.delay,
-                        output=args.output,
-                    )
-                    break
-            else:
+            courses = get_course_list(session, verbose=False)
+            matches = [course for course in courses if str(course["id"]).upper() == args.course_id.upper()]
+            if not matches:
                 print(f"\n❌ Course with ID {args.course_id} not found!")
+                return
+            print(f"Downloading course with ID: {args.course_id}...")
+            totals = download_groups(session, group_courses(matches), args)
+            print(f"\n✅ Done: {describe_stats(totals)}")
     except Exception as e:
         print(f"\n⚠️ Failed to download course materials: {e}")
     finally:
