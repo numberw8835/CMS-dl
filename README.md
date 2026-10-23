@@ -29,7 +29,17 @@ Started without arguments (or double-clicked) it opens the app; with arguments i
 ./CMS-Downloader-2.0.0-x86_64.AppImage --sync
 ```
 
-Tip: link it as `cms-dl` and use it like any command: `ln -s "$PWD/CMS-Downloader-2.0.0-x86_64.AppImage" ~/.local/bin/cms-dl`, then `cms-dl --sync`.
+### ⌨️ Linux command line only
+
+`cms-dl-linux-x86_64` is just the command line, in a single file. Put it in `~/.local/bin`:
+
+```bash
+curl -L -o ~/.local/bin/cms-dl https://github.com/numberw8835/CMS-dl/releases/latest/download/cms-dl-linux-x86_64
+chmod +x ~/.local/bin/cms-dl
+cms-dl --sync
+```
+
+Run the same two lines again to update.
 
 ## ⚙️ Running from source
 
@@ -153,7 +163,7 @@ python build.py
 [Nuitka](https://nuitka.net) compiles the program, so it runs without Python installed. It builds for the system it runs on:
 
 - **Windows**: `dist/CMS-Downloader/` with `CMS Downloader.exe` (the app) and `cms-dl.exe` (the command line). Nuitka uses Visual Studio's C compiler or, without it, `pip install ziglang`. With [Inno Setup](https://jrsoftware.org/isdl.php) installed you also get the installer `dist/CMS-Downloader-Setup-<version>.exe` (from `installer.iss`).
-- **Linux**: `dist/CMS-Downloader-<version>-x86_64.AppImage`. Needs gcc and patchelf; appimagetool is downloaded automatically.
+- **Linux**: `dist/CMS-Downloader-<version>-x86_64.AppImage` and the single-file command line `dist/cms-dl-linux-x86_64`. Needs gcc and patchelf (`pip install zstandard` to compress the single file); appimagetool is downloaded automatically.
 
 The first build takes a while (yt-dlp alone is over a thousand modules); later ones reuse Nuitka's cache.
 

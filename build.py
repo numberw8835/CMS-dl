@@ -7,7 +7,8 @@ Windows: dist/CMS-Downloader/ holds "CMS Downloader.exe" (the app) and cms-dl.ex
          line). With Inno Setup installed (https://jrsoftware.org/isdl.php) it also makes the
          installer dist/CMS-Downloader-Setup-<version>.exe.
 Linux:   dist/CMS-Downloader-<version>-x86_64.AppImage, the app when started without arguments and
-         the command line with them (see launcher.py). Needs patchelf.
+         the command line with them (see launcher.py), and dist/cms-dl-linux-x86_64, just the command
+         line in one file for ~/.local/bin. Needs patchelf (and zstandard to compress the single file).
 
 Nuitka builds for the system it runs on; the GitHub release workflow builds both for every v* tag.
 """
@@ -126,6 +127,21 @@ def find_inno_setup():
 
 
 def build_linux(version):
+    build_linux_command_line(version)
+    build_appimage(version)
+
+
+def build_linux_command_line(version):
+    """Only the command line, in a single file to drop into ~/.local/bin."""
+    name = "cms-dl-linux-x86_64"
+    # Unpacks once into ~/.cache/cms-dl/<version> and reuses that, so it starts quickly
+    nuitka("main.py", "--onefile", f"--onefile-tempdir-spec={{CACHE_DIR}}/cms-dl/{version}", f"--output-filename={name}")
+    os.makedirs(DIST_DIR, exist_ok=True)
+    shutil.copy2(os.path.join(BUILD_DIR, name), os.path.join(DIST_DIR, name))
+    print(f"\nCommand line: {os.path.join(DIST_DIR, name)}")
+
+
+def build_appimage(version):
     dist = nuitka("launcher.py", *GUI_OPTIONS, "--output-filename=cms-downloader")
 
     app_dir = os.path.join(BUILD_DIR, "AppDir")
