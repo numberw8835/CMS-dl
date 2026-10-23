@@ -109,7 +109,7 @@ Each course gets a folder named after it, inside your download folder: the one y
 └── ...
 ```
 
-- **Repeated and summer courses** (the same course code again) go into the folder of the first time you took it. Files that are already there aren't downloaded again; only new ones are added. If a retake renumbers an item (`1 - Lecture 3` becomes `4 - Lecture 3`), the file sizes are compared so it isn't downloaded twice.
+- **Repeated and summer courses** (the same course code again) go into the folder of the first time you took it. A file whose name is already there isn't downloaded again; everything else is added, so when a teacher renumbers or updates an item you get the new one too.
 - **Different courses with the same name** are numbered from first taken to last.
 - **Semester folders** are optional: `--by-semester` (or the switch in the app's settings) gives you `Semester 1/`, `Semester 2/`, `Semester 2 - Summer/`, ... A retaken course stays in the semester you first took it. Switching moves your existing folders instead of downloading them again.
 - A download that gets interrupted never leaves a half file behind.

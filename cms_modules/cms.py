@@ -19,7 +19,6 @@ COURSES_URL = BASE_URL + "/apps/student/ViewAllCourseStn"
 MEDIA_EXTENSIONS = {".mp4", ".mp3", ".wav", ".m4a", ".aac", ".ts", ".mkv", ".avi", ".mov"}
 SEASON_HEADER_RE = re.compile(r"Season\s*:\s*(-?\d+)\s*,?\s*Title\s*:\s*(.*)", re.S)
 COURSE_TITLE_RE = re.compile(r"^\(\|\s*(?P<code>[^|]*?)\s*\|\)\s*(?P<name>.*?)\s*(?:\(\d+\))?$", re.S)
-NUMBER_PREFIX_RE = re.compile(r"^\s*\d+\s*-\s*")  # the "3 - " in "3 - Lecture 3"
 MANUAL_FIX_HELP = (
     "# Every link under [LINKS] gets the name on the same line under [NAMES].\n"
     "# Make both lists the same length, then save. Remove a link to skip it from now on\n"
@@ -204,42 +203,6 @@ def _rename_if_mpegts(path: str) -> str:
     return path
 
 
-def _same_file_already_downloaded(
-    session: requests.Session, file_url: str, folder: str, stem: str, extension: str, delay: int
-) -> bool:
-    """True when the folder already has a file with this title (ignoring the 'N - ' number) and size.
-
-    Retakes often renumber items ('1 - Lecture 3' becomes '4 - Lecture 3'), so the size from a
-    HEAD request decides whether it's the same file without downloading it again.
-    """
-    title = NUMBER_PREFIX_RE.sub("", stem).casefold()
-    if not title:
-        return False
-    candidates = []
-    try:
-        with os.scandir(folder) as entries:
-            for entry in entries:
-                base, ext = os.path.splitext(entry.name)
-                if ext.lower() == extension.lower() and NUMBER_PREFIX_RE.sub("", base).casefold() == title and entry.is_file():
-                    candidates.append(entry)
-    except OSError:
-        return False
-    if not candidates:
-        return False
-
-    try:
-        response = session.head(file_url, allow_redirects=True)
-        sleep(delay)
-        size = int(response.headers.get("content-length", 0)) if response.ok else 0
-    except (requests.RequestException, ValueError):
-        return False
-    for entry in candidates:
-        if size and entry.stat().st_size == size:
-            print(f"{stem}{extension} is the same file as {entry.name}, skipping download.")
-            return True
-    return False
-
-
 def download_file(
     session: requests.Session,
     file_url: str,
@@ -278,9 +241,6 @@ def download_file(
         if os.path.exists(existing_video):
             print(f"Video/Audio {os.path.basename(existing_video)} already exists, skipping download.")
             return "skipped"
-
-    if _same_file_already_downloaded(session, file_url, folder, sanitized_filename, file_extension, delay):
-        return "skipped"
 
     # Check if this is a video stream that we should download using yt-dlp fallback
     parsed = urlparse(file_url)
